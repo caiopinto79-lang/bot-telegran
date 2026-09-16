@@ -45,7 +45,6 @@ async def web_server():
     await site.start()
 
 def rodar_web_server():
-    # Cria um event loop isolado para a thread do servidor web
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(web_server())
@@ -91,23 +90,32 @@ async def processar_opcao_plano(update: Update, context: ContextTypes.DEFAULT_TY
     except Exception as e:
         logger.error(f"Erro ao enviar mensagem: {e}")
 
-# Inicialização Principal
-def main():
+# Inicialização Assíncrona Total (Ideal para Render + PTB v20+)
+async def main_async():
     iniciar_db()
     
-    # Inicia o servidor web em uma thread separada para o Render não derrubar o bot
+    # Inicia o servidor web em background para responder ao Render
     t = threading.Thread(target=rodar_web_server, daemon=True)
     t.start()
     print("Servidor web iniciado em background.")
 
-    # Constrói e executa o bot de forma oficial e segura (v20+)
+    # Constrói o bot
     app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
-    
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
+    # Inicializa e bota o polling para rodar assincronamente sem travar a thread
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
     print("Bot do Telegram iniciado com sucesso!")
-    app.run_polling()
+
+    # Mantém o processo vivo em background
+    while True:
+        await asyncio.sleep(3600)
+
+def main():
+    asyncio.run(main_async())
 
 if __name__ == "__main__":
     main()
