@@ -170,7 +170,7 @@ async def web_server():
 
 def main():
     iniciar_db()
-    app = Application.builder().token(TELEGRAM_TOKEN).post_init(post_init).build()
+    Application.builder().token(os.getenv("TELEGRAM_TOKEN")).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
