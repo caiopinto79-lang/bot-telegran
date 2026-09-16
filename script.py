@@ -1,51 +1,33 @@
 import os
-import asyncio
-from aiohttp import web
+import logging
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_name = update.effective_user.first_name
-    await update.message.reply_text(f"Olá, {user_name}! O @QuickBookrosaBot está online e funcionando!")
+# Configura os logs para aparecerem direitinho no Render
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-async def handle(request):
-    return web.Response(text="Bot is running!")
-
-async def web_server():
-    app = web.Application()
-    app.router.add_get("/", handle)
-    runner = web.AppRunner(app)
-    await runner.setup()
-    port = int(os.environ.get("PORT", 10000))
-    site = web.TCPSite(runner, "0.0.0.0", port)
-    await site.start()
-
-async def main_async():
-    token = os.getenv("TELEGRAM_TOKEN")
-    if not token:
-        raise ValueError("TELEGRAM_TOKEN não foi encontrado!")
-
-    application = Application.builder().token(token).build()
-    application.add_handler(CommandHandler("start", start))
-
-    asyncio.create_task(web_server())
-
-    await application.initialize()
-    await application.bot.delete_webhook(drop_pending_updates=True)
-    await application.start()
-    
-    print("Bot iniciado com sucesso via Polling!")
-    
-    await application.updater.start_polling()
-
-    stop_event = asyncio.Event()
-    await stop_event.wait()
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Olá! O @QuickBookrosaBot está online e funcionando perfeitamente!")
 
 def main():
-    try:
-        asyncio.run(main_async())
-    except KeyboardInterrupt:
-        print("Bot interrompido manualmente.")
+    token = os.getenv("TELEGRAM_TOKEN")
+    if not token:
+        print("ERRO: TELEGRAM_TOKEN não configurado!")
+        return
 
-if __name__ == "__main__":
+    # Constrói a aplicação do bot
+    app = ApplicationBuilder().token(token).build()
+    
+    # Adiciona o comando /start
+    app.add_handler(CommandHandler("start", start))
+
+    print("Iniciando o bot em modo Polling...")
+    
+    # Inicia o polling diretamente (sem servidor web pesado para evitar conflito)
+    app.run_polling(drop_pending_updates=True)
+
+if __name__ == '__main__':
     main()
