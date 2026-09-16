@@ -171,26 +171,28 @@ async def web_server():
 async def main_async():
     iniciar_db()
     
-    # Constrói o bot de forma moderna
+    # Inicia o servidor web em segundo plano para o Render
+    asyncio.create_task(web_server())
+    
+    # Constrói o bot de forma moderna (v20+)
     app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
-    # Inicializa e inicia o bot de forma assíncrona (não bloqueia)
+    print("Bot e Servidor Web rodando em conjunto!")
+    
+    # Executa o bot de forma totalmente assíncrona e integrada
     await app.initialize()
     await app.start()
     await app.updater.start_polling()
     
-    print("Bot e Servidor Web rodando em conjunto!")
-    
-    # Mantém o processo vivo rodando sem travar o Render
+    # Mantém o processo vivo rodando sem travamentos
     while True:
         await asyncio.sleep(3600)
 
 def main():
-    loop = asyncio.get_event_loop()
-    loop.create_task(web_server())
-    loop.run_until_complete(main_async())
+    # Método moderno e seguro do Python para iniciar loops assíncronos
+    asyncio.run(main_async())
 
 if __name__ == "__main__":
     main()
