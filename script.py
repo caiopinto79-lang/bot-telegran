@@ -174,8 +174,12 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
-    # Roda o bot com o método oficial moderno
-    print("Bot iniciado com sucesso!")
+    # Inicia o servidor web em segundo plano e roda o bot
+    import asyncio
+    loop = asyncio.get_event_loop()
+    loop.create_task(web_server())
+    
+    print("Bot e Servidor web iniciados com sucesso!")
     app.run_polling()
 
 if __name__ == "__main__":
