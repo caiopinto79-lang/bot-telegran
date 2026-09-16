@@ -1,121 +1,51 @@
 import os
-import sqlite3
-import logging
 import asyncio
-import threading
-from datetime import datetime, timedelta
 from aiohttp import web
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Update
+from telegram.ext import Application, CommandHandler, ContextTypes
 
-# Configuração de Logs
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
-logger = logging.getLogger(__name__)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_name = update.effective_user.first_name
+    await update.message.reply_text(f"Olá, {user_name}! O @QuickBookrosaBot está online e funcionando!")
 
-# Banco de Dados
-def iniciar_db():
-    conn = sqlite3.connect("clientes.novo.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS clientes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            telegram_id INTEGER UNIQUE,
-            nome TEXT,
-            plano TEXT,
-            data_expiracao TEXT,
-            payment_id TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
-
-# Servidor Web para o Render (Health Check)
 async def handle(request):
-    return web.Response(text="Bot VIP rodando perfeitamente!")
+    return web.Response(text="Bot is running!")
 
 async def web_server():
-    app_web = web.Application()
-    app_web.router.add_get("/", handle)
-    runner = web.AppRunner(app_web)
+    app = web.Application()
+    app.router.add_get("/", handle)
+    runner = web.AppRunner(app)
     await runner.setup()
     port = int(os.environ.get("PORT", 10000))
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
 
-def rodar_web_server():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(web_server())
-
-# Funções do Bot
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    teclado = [
-        [InlineKeyboardButton("Plano Mensal", callback_data="mensal")],
-        [InlineKeyboardButton("Plano Anual", callback_data="anual")]
-    ]
-    reply_markup = InlineKeyboardMarkup(teclado)
-    await update.message.reply_text("Olá! Escolha o seu plano abaixo:", reply_markup=reply_markup)
-
-async def processar_opcao_plano(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    plano = query.data
-    user_id = update.effective_user.id
-    user_nome = update.effective_user.first_name
-    
-    dias = 30 if plano == "mensal" else 365
-    data_expiracao = datetime.now() + timedelta(days=dias)
-    data_str = data_expiracao.strftime("%Y-%m-%d %H:%M:%S")
-    
-    conn = sqlite3.connect("clientes.novo.db")
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT OR REPLACE INTO clientes (telegram_id, nome, plano, data_expiracao, payment_id)
-        VALUES (?, ?, ?, ?, ?)
-    """, (user_id, user_nome, plano, data_str, "simulado_123"))
-    conn.commit()
-    conn.close()
-    
-    mensagem_sucesso = (
-        f"✅ **Pagamento Confirmado!**\n\n"
-        f"Sua assinatura **{plano}** foi ativada com sucesso!\n"
-        f"👉 CLIQUE AQUI PARA ENTRAR NO GRUPO VIP: (link do convite)\n"
-        f"Seu acesso individual é válido por {dias} dias. Aproveite!"
-    )
-    
-    try:
-        await context.bot.send_message(chat_id=user_id, text=mensagem_sucesso, parse_mode="Markdown")
-    except Exception as e:
-        logger.error(f"Erro ao enviar mensagem: {e}")
-
-# Inicialização Assíncrona Total (Ideal para Render + PTB v20+)
 async def main_async():
-    iniciar_db()
-    
-    # Inicia o servidor web em background para responder ao Render
-    t = threading.Thread(target=rodar_web_server, daemon=True)
-    t.start()
-    print("Servidor web iniciado em background.")
+    token = os.getenv("TELEGRAM_TOKEN")
+    if not token:
+        raise ValueError("TELEGRAM_TOKEN não foi encontrado!")
 
-    # Constrói o bot
-    app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(processar_opcao_plano))
-    
-    # Inicializa e bota o polling para rodar assincronamente sem travar a thread
-    await app.initialize()
-    await app.start()
-    await app.updater.start_polling()
-    print("Bot do Telegram iniciado com sucesso!")
+    application = Application.builder().token(token).build()
+    application.add_handler(CommandHandler("start", start))
 
-    # Mantém o processo vivo em background
-    while True:
-        await asyncio.sleep(3600)
+    asyncio.create_task(web_server())
+
+    await application.initialize()
+    await application.bot.delete_webhook(drop_pending_updates=True)
+    await application.start()
+    
+    print("Bot iniciado com sucesso via Polling!")
+    
+    await application.updater.start_polling()
+
+    stop_event = asyncio.Event()
+    await stop_event.wait()
 
 def main():
-    asyncio.run(main_async())
+    try:
+        asyncio.run(main_async())
+    except KeyboardInterrupt:
+        print("Bot interrompido manualmente.")
 
 if __name__ == "__main__":
     main()
