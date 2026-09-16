@@ -3,7 +3,7 @@ import logging
 from threading import Thread
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext
+from telegram.ext import Application, CommandHandler, ContextTypes
 
 # Servidor HTTP simples para manter a porta aberta no Render
 class SimpleHandler(BaseHTTPRequestHandler):
@@ -22,8 +22,8 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-def start(update: Update, context: CallbackContext):
-    update.message.reply_text("Olá! O @QuickBookrosaBot está online e funcionando perfeitamente!")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Olá! O @QuickBookrosaBot está online e funcionando perfeitamente!")
 
 def main():
     token = os.getenv("TELEGRAM_TOKEN")
@@ -31,19 +31,18 @@ def main():
         print("ERRO: TELEGRAM_TOKEN não configurado!")
         return
 
-    # Inicia o servidor web em segundo plano
+    # Inicia o servidor web em segundo plano para o Render ficar feliz com a porta
     Thread(target=run_web_server, daemon=True).start()
 
-    # Inicialização compatível com a versão atual da biblioteca
-    updater = Updater(token)
-    dispatcher = updater.dispatcher
+    # Construção correta do bot com a API moderna
+    application = Application.builder().token(token).build()
     
-    dispatcher.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", start))
 
-    print("Iniciando o bot com sucesso...")
+    print("Iniciando o bot com Application.builder...")
     
-    updater.start_polling()
-    updater.idle()
+    # Roda o bot em modo polling
+    application.run_polling()
 
 if __name__ == '__main__':
     main()
