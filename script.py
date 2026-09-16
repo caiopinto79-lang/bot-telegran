@@ -1,9 +1,8 @@
 import os
 import logging
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+from telegram.ext import Application, ContextTypes, CommandHandler
 
-# Configura os logs para aparecerem direitinho no Render
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
@@ -18,16 +17,16 @@ def main():
         print("ERRO: TELEGRAM_TOKEN não configurado!")
         return
 
-    # Constrói a aplicação do bot
-    app = ApplicationBuilder().token(token).build()
+    # Usando o construtor padrão da Application
+    application = Application.builder().token(token).build()
     
     # Adiciona o comando /start
-    app.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("start", start))
 
     print("Iniciando o bot em modo Polling...")
     
-    # Inicia o polling diretamente (sem servidor web pesado para evitar conflito)
-    app.run_polling(drop_pending_updates=True)
+    # Inicia o polling de forma limpa e compatível
+    application.run_polling(drop_pending_updates=True)
 
 if __name__ == '__main__':
     main()
