@@ -1,0 +1,3 @@
+python-telegram-bot==20.8
+mercadopago==2.2.0
+aiohttp==3.9.3
