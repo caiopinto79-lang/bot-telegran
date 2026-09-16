@@ -15,8 +15,7 @@ from telegram.ext import (
 
 
 
-sdk = mercadopago.SDK(MERCADOPAGO_TOKEN)
-
+sdk = mercadopago.SDK(os.getenv("MERCADOPAGO_TOKEN"))
 PLANOS = {
     "plano_mensal": {"nome": "Plano Mensal (30 dias)", "valor": 10.00, "dias": 30},
     "plano_semestral": {"nome": "Plano Semestral (180 dias)", "valor": 45.00, "dias": 180},
