@@ -171,22 +171,11 @@ async def web_server():
 def main():
     iniciar_db()
     
-    # Inicia o servidor web em uma tarefa em segundo plano
-    import asyncio
-    try:
-        loop = asyncio.get_event_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        
-    loop.create_task(web_server())
-
-    # Constrói e roda o bot do Telegram de forma oficial e limpa
     app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
-    print("Bot e Servidor web iniciados com sucesso!")
+    print("Bot iniciado com sucesso!")
     app.run_polling()
 
 if __name__ == "__main__":
