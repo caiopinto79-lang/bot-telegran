@@ -125,7 +125,7 @@ async def monitorar_pagamento(payment_id, user_id, user_nome, plano, context):
                     f"_Seu acesso é individual e válido por {plano['dias']} dias. Aproveite!_"
                 )
                 await context.bot.send_message(chat_id=user_id, text=mensagem_sucesso, parse_mode="Markdown")
-                break
+                
         except Exception:
             pass
         tentativas += 1
