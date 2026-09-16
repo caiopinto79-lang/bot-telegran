@@ -5,7 +5,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
-# Servidor HTTP simples para o Render achar que é um site e manter a porta aberta
+# Servidor HTTP simples para manter a porta aberta no Render
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -31,16 +31,16 @@ def main():
         print("ERRO: TELEGRAM_TOKEN não configurado!")
         return
 
-    # Inicia o servidor web em uma linha separada em segundo plano
+    # Inicia o servidor web em segundo plano
     Thread(target=run_web_server, daemon=True).start()
 
-    # Inicialização do bot via Updater
-    updater = Updater(token, use_context=True)
+    # Inicialização compatível com a versão atual da biblioteca
+    updater = Updater(token)
     dispatcher = updater.dispatcher
     
     dispatcher.add_handler(CommandHandler("start", start))
 
-    print("Iniciando o bot em modo Updater Polling com servidor web integrado...")
+    print("Iniciando o bot com sucesso...")
     
     updater.start_polling()
     updater.idle()
