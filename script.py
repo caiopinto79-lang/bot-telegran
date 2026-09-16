@@ -174,8 +174,18 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
+    # Inicializa o bot e o servidor web juntos de forma correta
+    async def main_runner():
+        await app.initialize()
+        await app.start()
+        await app.updater.start_polling()
+        await web_server()
+        
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(web_server())
+    try:
+        loop.run_until_complete(main_runner())
+    except KeyboardInterrupt:
+        pass
 
 if __name__ == "__main__":
     main()
