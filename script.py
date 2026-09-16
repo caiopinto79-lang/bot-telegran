@@ -66,12 +66,10 @@ async def processar_opcao_plano(update: Update, context: ContextTypes.DEFAULT_TY
     user_id = update.effective_user.id
     user_nome = update.effective_user.first_name
     
-    # Exemplo de lógica de liberação e cadastro que você já utilizava
     dias = 30 if plano == "mensal" else 365
     data_expiracao = datetime.now() + timedelta(days=dias)
     data_str = data_expiracao.strftime("%Y-%m-%d %H:%M:%S")
     
-    # Salvando no banco de dados SQLite
     conn = sqlite3.connect("clientes.novo.db")
     cursor = conn.cursor()
     cursor.execute("""
@@ -81,7 +79,6 @@ async def processar_opcao_plano(update: Update, context: ContextTypes.DEFAULT_TY
     conn.commit()
     conn.close()
     
-    # Mensagem de sucesso
     mensagem_sucesso = (
         f"✅ **Pagamento Confirmado!**\n\n"
         f"Sua assinatura **{plano}** foi ativada com sucesso!\n"
