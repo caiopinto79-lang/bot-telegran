@@ -170,15 +170,12 @@ async def web_server():
 
 def main():
     iniciar_db()
-    Application.builder().token(os.getenv("TELEGRAM_TOKEN")).post_init(post_init).build()
+    app = Application.builder().token(os.getenv("TELEGRAM_TOKEN")).post_init(post_init).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(processar_opcao_plano))
     
     loop = asyncio.get_event_loop()
     loop.run_until_complete(web_server())
-    
-    print("🤖 Bot rodando na nuvem...")
-    app.run_polling()
 
 if __name__ == "__main__":
     main()
