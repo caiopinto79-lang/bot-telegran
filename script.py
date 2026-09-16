@@ -5,7 +5,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# 1. Mini servidor HTTP para responder ao Render e manter a porta ativa
+# 1. Mini servidor HTTP para atender às exigências de porta do Render
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -17,37 +17,33 @@ def run_web_server():
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# 2. Configuração de logs para acompanhar tudo no console
+# 2. Configuração de logs para rastreamento no painel
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO
 )
 
-# 3. Função do comando /start
+# 3. Função assíncrona do comando /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Olá! O @QuickBookrosaBot está online e funcionando perfeitamente no Render!")
+    await update.message.reply_text("Olá! O @QuickBookrosaBot está online e operando na nuvem!")
 
 def main():
-    # Pega o token seguro das variáveis de ambiente do Render (ou usa o padrão)
-    token = os.getenv("TELEGRAM_TOKEN", "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc")
-    
-    if not token:
-        print("ERRO: TELEGRAM_TOKEN não configurado!")
-        return
+    # Token oficial do bot
+    token = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 
-    # Inicia o servidor web em segundo plano para liberar a porta do Render
+    # Inicia o servidor web secundário em segundo plano (Thread)
     Thread(target=run_web_server, daemon=True).start()
     print("Servidor web secundário iniciado na porta HTTP...")
 
-    # Constrói o bot com a API moderna validada
+    # Constrói a aplicação usando exclusivamente a API moderna Application.builder()
     application = Application.builder().token(token).build()
     
-    # Registra o comando
+    # Registra o manipulador do comando /start
     application.add_handler(CommandHandler("start", start))
 
     print("Iniciando o bot do Telegram em modo Polling...")
     
-    # Roda o bot de forma contínua
+    # Executa o bot continuamente
     application.run_polling()
 
 if __name__ == '__main__':
