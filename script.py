@@ -6,10 +6,13 @@ from flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
 
-# Credenciais oficiais do seu bot e Mercado Pago
+# Credenciais oficiais
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 TELEGRAM_CHAT_ID = "-1002130298013"
+
+# Cole aqui o link oficial e permanente do seu grupo do Telegram
+LINK_GRUPO_OFICIAL = "https://t.me/+SEU_LINK_DO_GRUPO_AQUI"
 
 DB_NAME = "agencia_bot.db"
 
@@ -88,12 +91,12 @@ HTML_TEMPLATE = """
             <p id="statusPagamento" class="status-aguardando">⏳ Aguardando a aprovação do pagamento...</p>
         </div>
 
-        <!-- Etapa 4: Sucesso com Link de Uso Único -->
+        <!-- Etapa 4: Sucesso -->
         <div id="step-success" class="hidden">
             <h2>🎉 Pagamento Aprovado!</h2>
-            <p>O seu link de acesso exclusivo foi gerado:</p>
-            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram</a>
-            <p style="font-size: 11px; color: #ff2a6d; margin-top: 15px;">⚠️ **Atenção:** Este link serve para apenas 1 (uma) única entrada e expira após o uso. Não compartilhe!</p>
+            <p>O seu pagamento foi confirmado com sucesso. Clique abaixo para entrar no grupo:</p>
+            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram Agora</a>
+            <p style="font-size: 11px; color: #71717a; margin-top: 15px;">⚠️ Aproveite agora. Ao fechar esta página, o acesso expira.</p>
         </div>
     </div>
 
@@ -131,7 +134,6 @@ HTML_TEMPLATE = """
                 document.getElementById('textoChavePix').innerText = data.qr_code;
                 document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + data.qr_code_base64;
 
-                // Fica checando o pagamento a cada 4 segundos
                 checkInterval = setInterval(verificarStatus, 4000);
             } catch (err) {
                 alert('Erro de conexão ao gerar o Pix.');
@@ -209,26 +211,8 @@ def verificar_pagamento(payment_id):
 
     res_data = response.json()
     status = res_data.get("status")
-    link_convite = "https://t.me/"
-
-    if status == 'approved':
-        try:
-            # Configuração estrito de segurança: link expira em 2 horas, mas morre no PRIMEIRO CLIQUE (member_limit: 1)
-            tempo_expiracao = int(time.time()) + 7200
-            tg_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
-            tg_payload = {
-                "chat_id": TELEGRAM_CHAT_ID,
-                "member_limit": 1,
-                "expire_date": tempo_expiracao
-            }
-            
-            tg_response = requests.post(tg_url, json=tg_payload, timeout=5)
-            tg_data = tg_response.json()
-            
-            if tg_data.get("ok"):
-                link_convite = tg_data["result"]["invite_link"]
-        except Exception as e:
-            print(f"Erro ao gerar link no Telegram: {e}")
+    
+    link_convite = LINK_GRUPO_OFICIAL if status == 'approved' else ""
 
     return jsonify({
         "status": status,
