@@ -6,12 +6,11 @@ from flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
 
-# Credenciais oficiais configuradas diretamente no código
+# Credenciais oficiais
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 TELEGRAM_CHAT_ID = "-1002130298013"
 
-# Banco de dados SQLite simples para controle
 DB_NAME = "agencia_bot.db"
 
 def init_db():
@@ -20,7 +19,8 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS acessos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            payment_id TEXT,
+            payment_id TEXT UNIQUE,
+            link_convite TEXT,
             status TEXT,
             data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP
         )
@@ -30,7 +30,6 @@ def init_db():
 
 init_db()
 
-# Template HTML/CSS Moderno com Fluxo Pix (QR Code + Copia e Cola)
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -63,7 +62,7 @@ HTML_TEMPLATE = """
         <div id="step-age">
             <h2>⚠️ Acesso Restrito (+18)</h2>
             <p>Este espaço contém material exclusivo. Confirma que você tem 18 anos ou mais para prosseguir?</p>
-            <button class="btn" onclick="goToPix()">Sim, tenho 18 anos ou mais</button>
+            <button class="btn" onclick="verificarSeJaPagou()">Sim, tenho 18 anos ou mais</button>
             <button class="btn btn-secundario" onclick="alert('Acesso negado.');">Não tenho</button>
         </div>
 
@@ -89,12 +88,12 @@ HTML_TEMPLATE = """
             <p id="statusPagamento" class="status-aguardando">⏳ Aguardando a aprovação do pagamento...</p>
         </div>
 
-        <!-- Etapa 4: Sucesso com Link de Convite Único do Telegram -->
+        <!-- Etapa 4: Sucesso / Recuperação do Link -->
         <div id="step-success" class="hidden">
-            <h2>🎉 Pagamento Aprovado!</h2>
-            <p>O seu link de acesso exclusivo e seguro foi gerado com sucesso:</p>
-            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram</a>
-            <p style="font-size: 11px; color: #71717a; margin-top: 15px;">⚠️ Este link expira automaticamente em 3 minutos ou após o primeiro uso.</p>
+            <h2>🎉 Acesso Liberado!</h2>
+            <p>O seu link exclusivo está pronto. Caso feche a página, você pode retornar aqui usando o mesmo navegador:</p>
+            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram Agora</a>
+            <p style="font-size: 11px; color: #71717a; margin-top: 15px;">⚠️ Válido por 24 horas. Se houver problemas, o link garante sua entrada.</p>
         </div>
     </div>
 
@@ -102,7 +101,25 @@ HTML_TEMPLATE = """
         let paymentId = null;
         let checkInterval = null;
 
-        function goToPix() {
+        // Ao passar pela idade, verifica se o cliente já tem uma compra salva no navegador
+        async function verificarSeJaPagou() {
+            let savedPaymentId = localStorage.getItem('agencia_payment_id');
+            
+            if (savedPaymentId) {
+                // Tenta recuperar o link do pagamento já aprovado anteriormente
+                try {
+                    let response = await fetch(`/verificar-pagamento/${savedPaymentId}`);
+                    let data = await response.json();
+                    if (data.status === 'approved' && data.link_grupo) {
+                        document.getElementById('step-age').classList.add('hidden');
+                        document.getElementById('linkTelegram').href = data.link_grupo;
+                        document.getElementById('step-success').classList.remove('hidden');
+                        return;
+                    }
+                } catch(e) {}
+            }
+            
+            // Se não tiver compra salva, segue para a vitrine normal
             document.getElementById('step-age').classList.add('hidden');
             document.getElementById('step-pix-init').classList.remove('hidden');
         }
@@ -129,10 +146,12 @@ HTML_TEMPLATE = """
                 }
 
                 paymentId = data.id;
+                // Salva o ID no navegador do cliente para permitir que ele recupere o link depois se voltar
+                localStorage.setItem('agencia_payment_id', paymentId);
+
                 document.getElementById('textoChavePix').innerText = data.qr_code;
                 document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + data.qr_code_base64;
 
-                // Checa o status do pagamento a cada 4 segundos
                 checkInterval = setInterval(verificarStatus, 4000);
             } catch (err) {
                 alert('Erro de conexão.');
@@ -200,20 +219,35 @@ def criar_pagamento():
 
 @app.route('/verificar-pagamento/<int:payment_id>', methods=['GET'])
 def verificar_pagamento(payment_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    
+    # Verifica se já temos o link gerado salvo no banco para este pagamento
+    cursor.execute("SELECT link_convite, status FROM acessos WHERE payment_id = ?", (str(payment_id),))
+    row = cursor.fetchone()
+    
+    if row and row[0]:
+        # Se já foi gerado antes, retorna o mesmo link salvo (permitindo voltar e ver de novo)
+        conn.close()
+        return jsonify({"status": row[1], "link_grupo": row[0]})
+
+    # Caso contrário, consulta o Mercado Pago para ver se o pagamento foi aprovado agora
     url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
     headers = {"Authorization": f"Bearer {MP_ACCESS_TOKEN}"}
 
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
+        conn.close()
         return jsonify({"status": "pending"})
 
     res_data = response.json()
     status = res_data.get("status")
-    link_convite = "https://t.me/"
+    link_convite = ""
 
     if status == 'approved':
-        # Gera o link de uso único no Telegram válido por 3 minutos (180 segundos)
-        tempo_expiracao = int(time.time()) + 180
+        # Gera o link válido por 24 horas no Telegram
+        tempo_expiracao = int(time.time()) + 86400
+        
         tg_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
         tg_payload = {
             "chat_id": TELEGRAM_CHAT_ID,
@@ -227,13 +261,12 @@ def verificar_pagamento(payment_id):
         if tg_data.get("ok"):
             link_convite = tg_data["result"]["invite_link"]
             
-            # Salva o registro no banco local
-            conn = sqlite3.connect(DB_NAME)
-            cursor = conn.cursor()
-            cursor.execute("INSERT INTO acessos (payment_id, status) VALUES (?, ?)", (str(payment_id), "Aprovado"))
+            # Salva permanentemente no banco para futuras consultas do cliente
+            cursor.execute("INSERT OR REPLACE INTO acessos (payment_id, link_convite, status) VALUES (?, ?, ?)", 
+                           (str(payment_id), link_convite, "approved"))
             conn.commit()
-            conn.close()
 
+    conn.close()
     return jsonify({
         "status": status,
         "link_grupo": link_convite
