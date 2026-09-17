@@ -6,7 +6,6 @@ app = Flask(__name__)
 
 TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 
 SITE_HTML = """
 <!DOCTYPE html>
@@ -17,6 +16,11 @@ SITE_HTML = """
     <title>Agência Bot - Plataforma Oficial</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 20px; text-align: center; }
+        
+        /* Oculta padrão de todas as telas e só exibe a ativa */
+        .tela { display: none; }
+        .tela.ativa { display: block; }
+
         .container { max-width: 480px; margin: 30px auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); border: 1px solid #333; text-align: left; position: relative; }
         h2 { color: #ff4081; margin-top: 0; text-align: center; font-size: 22px; }
         p { color: #b0bec5; font-size: 14px; line-height: 1.5; text-align: center; margin-bottom: 20px; }
@@ -25,7 +29,7 @@ SITE_HTML = """
         .btn-destaque { background: #ff4081; color: #fff; border: none; }
         .btn-destaque:hover { background: #e91e63; }
         
-        /* Barra de Navegação Superior / Rodapé Interno */
+        /* Barra de Navegação Superior Limpa */
         .nav-topo { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
         .btn-inicio { background: #333; color: #ff4081; border: 1px solid #ff4081; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; text-decoration: none; }
         .btn-inicio:hover { background: #ff4081; color: #fff; }
@@ -41,8 +45,6 @@ SITE_HTML = """
         .form-control { width: 100%; padding: 10px; background: #121212; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
         .aviso-legal { background: rgba(255, 64, 129, 0.1); border-left: 3px solid #ff4081; padding: 10px; font-size: 12px; color: #b0bec5; margin-bottom: 15px; border-radius: 0 6px 6px 0; line-height: 1.4; }
         .info-box { background: rgba(0, 230, 118, 0.1); border-left: 3px solid #00e676; padding: 10px; font-size: 12px; color: #b0bec5; margin-bottom: 15px; border-radius: 0 6px 6px 0; line-height: 1.4; }
-        .tela { display: none; }
-        .tela.ativa { display: block; }
         .profile-card { background: #2a2a2a; border: 1px solid #333; padding: 12px; margin: 10px 0; border-radius: 8px; display: flex; align-items: center; cursor: pointer; text-align: left; }
         .profile-card:hover { border-color: #ff4081; }
         .profile-thumb { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #ff4081; }
@@ -56,7 +58,7 @@ SITE_HTML = """
 <body>
 
     <!-- TELA 1: Escolha Principal (Início) -->
-    <div id="tela-escolha" class="container ativa">
+    <div id="tela-escolha" class="container tela ativa">
         <h2>🔥 Agência Bot</h2>
         <p>Selecione o seu perfil de acesso:</p>
         <button class="btn-opcao btn-destaque" onclick="mostrarTela('tela-criador-menu')">👩‍🦰 Sou Criador(a) / Profissional</button>
@@ -66,7 +68,7 @@ SITE_HTML = """
     <!-- TELA 2: Menu Criadoras -->
     <div id="tela-criador-menu" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Painel Criadoras</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Painel Criadoras</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2>Painel de Criadoras</h2>
@@ -78,7 +80,7 @@ SITE_HTML = """
     <!-- TELA 3: Login Criadora -->
     <div id="tela-login" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Acesso</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Acesso</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2>Login de Criadora</h2>
@@ -96,7 +98,7 @@ SITE_HTML = """
     <!-- TELA 4: Cadastro Completo Criadora / Job -->
     <div id="tela-cadastro-criador" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Novo Cadastro</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Novo Cadastro</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2>Cadastro Profissional</h2>
@@ -138,10 +140,10 @@ SITE_HTML = """
         <button class="btn-opcao btn-destaque" onclick="salvarCadastroCriadora()">Concluir e Abrir Painel</button>
     </div>
 
-    <!-- TELA 5: Painel da Criadora (Criar Pacotes e Vitrine) -->
+    <!-- TELA 5: Painel da Criadora -->
     <div id="tela-painel-criador" class="container tela" style="max-width: 520px;">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#00e676;">Painel Ativo</span>
+            <span style="font-size:12px; color:#00e676; font-weight:bold;">Painel Ativo</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Sair / Início</button>
         </div>
         <h2>✨ Meu Painel Profissional</h2>
@@ -165,7 +167,7 @@ SITE_HTML = """
     <!-- TELA 6: Verificação +18 Consumidor -->
     <div id="tela-idade-consumidor" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Verificação</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Verificação</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2>⚠️ Confirmação de Idade (+18)</h2>
@@ -176,7 +178,7 @@ SITE_HTML = """
     <!-- TELA 7: Menu do Cliente -->
     <div id="tela-cliente-menu" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Área do Cliente</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Área do Cliente</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2>🛍️ Área do Consumidor</h2>
@@ -186,32 +188,31 @@ SITE_HTML = """
             <h3>🌟 Acesso Geral ao Grupo VIP</h3>
             <p>Todo o acervo principal liberado na nuvem.</p>
             <div class="price">R$ 10,00</div>
-            <a href="https://link.mercadopago.com.br/SEU_LINK_AQUI" target="_blank" class="comprar">Comprar Grupo VIP</a>
+            <!-- Link corrigido para a sua caixinha do Mercado Pago (substitua pelo seu link real quando tiver) -->
+            <a href="https://link.mercadopago.com.br/suacaixinha" target="_blank" class="comprar">Comprar Grupo VIP (Mercado Pago)</a>
         </div>
 
         <button class="btn-opcao btn-destaque" style="margin-top:15px;" onclick="abrirCatalogoCriadoras('conteudo', 1)">📁 Catálogo de Conteúdos (A-Z)</button>
         <button class="btn-opcao btn-destaque" onclick="abrirCatalogoCriadoras('job', 1)">💎 Catálogo de Jobs / Presencial (A-Z)</button>
     </div>
 
-    <!-- TELA 8: Listagem de Criadoras de A a Z com Paginação (Página 1, 2, 3...) -->
+    <!-- TELA 8: Listagem de Criadoras de A a Z com Paginação -->
     <div id="tela-catalogo-criadoras" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#ff4081;" id="subtituloFiltro">Diretório</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;" id="subtituloFiltro">Diretório</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <h2 id="tituloCatalogoCriadoras">Diretório</h2>
         <p style="font-size:12px; margin-bottom:10px;">Clique em uma criadora para ver detalhes:</p>
         
         <div id="listaCriadorasAZ"></div>
-        
-        <!-- Elemento de Paginação Automática -->
         <div id="paginacaoContainer" class="paginacao-container"></div>
     </div>
 
     <!-- TELA 9: Perfil Detalhado da Criadora para o Cliente -->
     <div id="tela-perfil-detalhe" class="container tela">
         <div class="nav-topo">
-            <span style="font-size:12px; color:#777;">Perfil</span>
+            <span style="font-size:12px; color:#ff4081; font-weight:bold;">Perfil</span>
             <button class="btn-inicio" onclick="voltarParaEscolha()">🏠 Início</button>
         </div>
         <div style="text-align:center;">
@@ -227,7 +228,6 @@ SITE_HTML = """
     </div>
 
     <script>
-        // Simulando dados e capacidade de paginação
         let criadorasBD = [
             { nome: "Amanda S.", categoria: "ambos", local: "Birigui e Araçatuba - SP", desc: "Conteúdos diários e disponibilidade para atendimento VIP.", foto: "https://via.placeholder.com/80", pacotes: [{ titulo: "Pack Exclusivo 20 Fotos", preco: "25.00" }] },
             { nome: "Bruna Lima", categoria: "conteudo", local: "Online / Todo o Brasil", desc: "Especialista em packs personalizados e vídeos sob encomenda.", foto: "https://via.placeholder.com/80", pacotes: [{ titulo: "Vídeo Privado 10min", preco: "40.00" }] },
@@ -238,7 +238,7 @@ SITE_HTML = """
 
         let criadoraLogadaIndex = null;
         let tipoAtualFiltro = 'conteudo';
-        const itensPorPagina = 3; // Limite por página para testar os botões 1, 2, 3...
+        const itensPorPagina = 3;
 
         function mostrarTela(idTela) {
             document.querySelectorAll('.tela').forEach(el => el.classList.remove('ativa'));
@@ -296,7 +296,6 @@ SITE_HTML = """
             listaEl.innerHTML = '';
             pagContainer.innerHTML = '';
 
-            // Filtra e Ordena de A a Z
             let filtradas = criadorasBD.filter(c => tipoFiltro === 'ambos' || c.categoria === tipoFiltro || c.categoria === 'ambos');
             filtradas.sort((a, b) => a.nome.localeCompare(b.nome));
 
@@ -306,13 +305,11 @@ SITE_HTML = """
                 return;
             }
 
-            // Lógica de Paginação (Ex: 3 por página)
             let totalPaginas = Math.ceil(filtradas.length / itensPorPagina);
             let inicio = (pagina - 1) * itensPorPagina;
             let fim = inicio + itensPorPagina;
             let itensPaginaAtual = filtradas.slice(inicio, fim);
 
-            // Renderiza os cards da página atual
             itensPaginaAtual.forEach(c => {
                 let card = document.createElement('div');
                 card.className = 'profile-card';
@@ -327,7 +324,6 @@ SITE_HTML = """
                 listaEl.appendChild(card);
             });
 
-            // Cria os botões de página (1, 2, 3...) dinamicamente
             if (totalPaginas > 1) {
                 for (let i = 1; i <= totalPaginas; i++) {
                     let btnPag = document.createElement('button');
@@ -359,7 +355,7 @@ SITE_HTML = """
                         <div class="product">
                             <h3>📦 ${p.titulo}</h3>
                             <div class="price">R$ ${parseFloat(p.preco).toFixed(2)}</div>
-                            <a href="https://link.mercadopago.com.br/SEU_LINK_AQUI" target="_blank" class="comprar">Comprar por R$ ${p.preco}</a>
+                            <a href="https://link.mercadopago.com.br/suacaixinha" target="_blank" class="comprar">Comprar por R$ ${p.preco} (Mercado Pago)</a>
                         </div>
                     `;
                 });
