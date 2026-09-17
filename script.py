@@ -8,7 +8,7 @@ app = Flask(__name__)
 TOKEN = os.environ.get('TELEGRAM_TOKEN', 'SEU_TOKEN_AQUI')
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
-# Código HTML/JS do site completo
+# Código HTML/JS do site completo com o link da Caixinha do Mercado Pago integrado
 SITE_HTML = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -21,7 +21,7 @@ SITE_HTML = """
         .container { max-width: 450px; margin: 40px auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); border: 1px solid #333; text-align: left; }
         h2 { color: #ff4081; margin-top: 0; text-align: center; font-size: 22px; }
         p { color: #b0bec5; font-size: 14px; line-height: 1.5; text-align: center; margin-bottom: 20px; }
-        .btn-opcao { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: block; text-align: center; box-sizing: border-box; }
+        .btn-opcao { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: block; text-align: center; box-sizing: border-box; text-decoration: none; }
         .btn-opcao:hover { background: #333; border-color: #ff4081; }
         .btn-destaque { background: #ff4081; color: #fff; border: none; }
         .btn-destaque:hover { background: #e91e63; }
@@ -35,7 +35,8 @@ SITE_HTML = """
         .product h3 { margin: 0 0 5px 0; color: #fff; font-size: 16px; }
         .product p { color: #b0bec5; font-size: 13px; margin: 0 0 8px 0; text-align: left; }
         .price { color: #00e676; font-weight: bold; font-size: 15px; margin-bottom: 8px; }
-        button.comprar { background: #ff4081; color: white; border: none; padding: 8px 12px; width: 100%; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        a.comprar { background: #ff4081; color: white; border: none; padding: 10px 12px; width: 100%; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+        a.comprar:hover { background: #e91e63; }
     </style>
 </head>
 <body>
@@ -126,7 +127,8 @@ SITE_HTML = """
             <h3>🌟 Acesso Geral ao Grupo VIP</h3>
             <p>Acesso completo a todo o acervo principal liberado na nuvem.</p>
             <div class="price">R$ 10,00</div>
-            <button class="comprar" onclick="alert('Redirecionando para pagamento...')">Comprar Acesso (R$ 10)</button>
+            <!-- Link integrado direcionando para a sua Caixinha / Pagamento do Mercado Pago -->
+            <a href="https://link.mercadopago.com.br/SEU_LINK_AQUI" target="_blank" class="comprar">Comprar Acesso (R$ 10)</a>
         </div>
     </div>
 
