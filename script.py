@@ -6,13 +6,10 @@ from flask import Flask, render_template_string, request, jsonify
 
 app = Flask(__name__)
 
-# Credenciais oficiais do seu projeto
+# Credenciais oficiais do seu bot e Mercado Pago
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 TELEGRAM_CHAT_ID = "-1002130298013"
-
-# Link padrão de segurança caso o bot falhe por algum motivo pontual
-LINK_GRUPO_PADRAO = "https://t.me/+exemplo_convite_vip"
 
 DB_NAME = "agencia_bot.db"
 
@@ -65,7 +62,7 @@ HTML_TEMPLATE = """
         <div id="step-age">
             <h2>⚠️ Acesso Restrito (+18)</h2>
             <p>Este espaço contém material exclusivo. Confirma que você tem 18 anos ou mais para prosseguir?</p>
-            <button class="btn" onclick="verificarSeJaPagou()">Sim, tenho 18 anos ou mais</button>
+            <button class="btn" onclick="goToPix()">Sim, tenho 18 anos ou mais</button>
             <button class="btn btn-secundario" onclick="alert('Acesso negado.');">Não tenho</button>
         </div>
 
@@ -91,12 +88,12 @@ HTML_TEMPLATE = """
             <p id="statusPagamento" class="status-aguardando">⏳ Aguardando a aprovação do pagamento...</p>
         </div>
 
-        <!-- Etapa 4: Sucesso / Recuperação do Link -->
+        <!-- Etapa 4: Sucesso com Link de Uso Único -->
         <div id="step-success" class="hidden">
-            <h2>🎉 Acesso Liberado!</h2>
-            <p>O seu link exclusivo está pronto. Caso feche a página, você pode retornar aqui usando o mesmo navegador:</p>
-            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram Agora</a>
-            <p style="font-size: 11px; color: #71717a; margin-top: 15px;">⚠️ Válido por 24 horas (uso único).</p>
+            <h2>🎉 Pagamento Aprovado!</h2>
+            <p>O seu link de acesso exclusivo foi gerado:</p>
+            <a id="linkTelegram" href="" target="_blank" class="btn">🚀 Entrar no Grupo do Telegram</a>
+            <p style="font-size: 11px; color: #ff2a6d; margin-top: 15px;">⚠️ **Atenção:** Este link serve para apenas 1 (uma) única entrada e expira após o uso. Não compartilhe!</p>
         </div>
     </div>
 
@@ -104,22 +101,7 @@ HTML_TEMPLATE = """
         let paymentId = null;
         let checkInterval = null;
 
-        async function verificarSeJaPagou() {
-            let savedPaymentId = localStorage.getItem('agencia_payment_id');
-            
-            if (savedPaymentId) {
-                try {
-                    let response = await fetch(`/verificar-pagamento/${savedPaymentId}`);
-                    let data = await response.json();
-                    if (data.status === 'approved' && data.link_grupo) {
-                        document.getElementById('step-age').classList.add('hidden');
-                        document.getElementById('linkTelegram').href = data.link_grupo;
-                        document.getElementById('step-success').classList.remove('hidden');
-                        return;
-                    }
-                } catch(e) {}
-            }
-            
+        function goToPix() {
             document.getElementById('step-age').classList.add('hidden');
             document.getElementById('step-pix-init').classList.remove('hidden');
         }
@@ -146,14 +128,14 @@ HTML_TEMPLATE = """
                 }
 
                 paymentId = data.id;
-                localStorage.setItem('agencia_payment_id', paymentId);
-
                 document.getElementById('textoChavePix').innerText = data.qr_code;
                 document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + data.qr_code_base64;
 
+                // Fica checando o pagamento a cada 4 segundos
                 checkInterval = setInterval(verificarStatus, 4000);
             } catch (err) {
-                alert('Erro de conexão.');
+                alert('Erro de conexão ao gerar o Pix.');
+                location.reload();
             }
         }
 
@@ -218,31 +200,21 @@ def criar_pagamento():
 
 @app.route('/verificar-pagamento/<int:payment_id>', methods=['GET'])
 def verificar_pagamento(payment_id):
-    conn = sqlite3.connect(DB_NAME)
-    cursor = conn.cursor()
-    
-    cursor.execute("SELECT link_convite, status FROM acessos WHERE payment_id = ?", (str(payment_id),))
-    row = cursor.fetchone()
-    
-    if row and row[0]:
-        conn.close()
-        return jsonify({"status": row[1], "link_grupo": row[0]})
-
     url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
     headers = {"Authorization": f"Bearer {MP_ACCESS_TOKEN}"}
 
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
-        conn.close()
         return jsonify({"status": "pending"})
 
     res_data = response.json()
     status = res_data.get("status")
-    link_convite = LINK_GRUPO_PADRAO
+    link_convite = "https://t.me/"
 
     if status == 'approved':
         try:
-            tempo_expiracao = int(time.time()) + 86400  # 24 horas de validade
+            # Configuração estrito de segurança: link expira em 2 horas, mas morre no PRIMEIRO CLIQUE (member_limit: 1)
+            tempo_expiracao = int(time.time()) + 7200
             tg_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
             tg_payload = {
                 "chat_id": TELEGRAM_CHAT_ID,
@@ -258,11 +230,6 @@ def verificar_pagamento(payment_id):
         except Exception as e:
             print(f"Erro ao gerar link no Telegram: {e}")
 
-        cursor.execute("INSERT OR REPLACE INTO acessos (payment_id, link_convite, status) VALUES (?, ?, ?)", 
-                       (str(payment_id), link_convite, "approved"))
-        conn.commit()
-
-    conn.close()
     return jsonify({
         "status": status,
         "link_grupo": link_convite
