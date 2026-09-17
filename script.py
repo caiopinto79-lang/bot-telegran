@@ -1,9 +1,14 @@
 import os
+import requests
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Código HTML/CSS/JS completo do mini site embutido
+# Token do seu bot do Telegram (se quiser configurar depois)
+TOKEN = os.environ.get('TELEGRAM_TOKEN', 'SEU_TOKEN_AQUI')
+TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+
+# Código HTML/JS do site completo
 SITE_HTML = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -13,25 +18,19 @@ SITE_HTML = """
     <title>Agência Bot - Acesso Restrito</title>
     <style>
         body { font-family: Arial, sans-serif; background-color: #121212; color: #e0e0e0; margin: 0; padding: 20px; text-align: center; }
-        
         .container { max-width: 450px; margin: 40px auto; background: #1e1e1e; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.8); border: 1px solid #333; text-align: left; }
         h2 { color: #ff4081; margin-top: 0; text-align: center; font-size: 22px; }
         p { color: #b0bec5; font-size: 14px; line-height: 1.5; text-align: center; margin-bottom: 20px; }
-
         .btn-opcao { background: #2a2a2a; color: #fff; border: 1px solid #444; padding: 15px; width: 100%; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; display: block; text-align: center; box-sizing: border-box; }
         .btn-opcao:hover { background: #333; border-color: #ff4081; }
         .btn-destaque { background: #ff4081; color: #fff; border: none; }
         .btn-destaque:hover { background: #e91e63; }
-
         .form-group { margin-bottom: 12px; }
         label { color: #b0bec5; font-size: 13px; display: block; margin-bottom: 5px; }
         .form-control { width: 100%; padding: 10px; background: #121212; border: 1px solid #444; color: #fff; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        
         .aviso-legal { background: rgba(255, 64, 129, 0.1); border-left: 3px solid #ff4081; padding: 10px; font-size: 12px; color: #b0bec5; margin-bottom: 15px; border-radius: 0 6px 6px 0; line-height: 1.4; }
-        
         .tela { display: none; }
         .tela.ativa { display: block; }
-        
         .product { background: #2a2a2a; border: 1px solid #333; padding: 12px; margin: 10px 0; border-radius: 8px; }
         .product h3 { margin: 0 0 5px 0; color: #fff; font-size: 16px; }
         .product p { color: #b0bec5; font-size: 13px; margin: 0 0 8px 0; text-align: left; }
@@ -41,7 +40,6 @@ SITE_HTML = """
 </head>
 <body>
 
-    <!-- TELA 1: ESCOLHA DE ENTRADA (CONSUMIDOR OU CRIADOR) -->
     <div id="tela-escolha" class="container ativa">
         <h2>🔥 Agência Bot</h2>
         <p>Selecione o seu perfil de acesso para continuar:</p>
@@ -49,7 +47,6 @@ SITE_HTML = """
         <button class="btn-opcao" onclick="irParaConsumidor()">🛍️ Sou Consumidor(a) / Cliente</button>
     </div>
 
-    <!-- TELA 2A: FLUXO DE CRIADOR (LOGIN OU NOVO CADASTRO) -->
     <div id="tela-criador-menu" class="container tela">
         <h2>Painel de Criadores</h2>
         <p>Acesse sua conta ou faça seu registro profissional.</p>
@@ -58,7 +55,6 @@ SITE_HTML = """
         <button class="btn-opcao" style="background:#333; margin-top:20px;" onclick="voltarParaEscolha()">⬅ Voltar</button>
     </div>
 
-    <!-- TELA 2A.1: LOGIN DO CRIADOR -->
     <div id="tela-login" class="container tela">
         <h2>Login de Criador(a)</h2>
         <div class="form-group">
@@ -73,11 +69,10 @@ SITE_HTML = """
         <button class="btn-opcao" style="background:#333;" onclick="mostrarTela('tela-criador-menu')">Voltar</button>
     </div>
 
-    <!-- TELA 2A.2: NOVO CADASTRO DO CRIADOR -->
     <div id="tela-cadastro-criador" class="container tela">
         <h2>Cadastro de Criador(a)</h2>
         <div class="aviso-legal">
-            🔒 O cadastro exige validação de identidade para segurança e conformidade legal das partes. Tudo o que é postado reflete acordos de consentimento mútuo.
+            🔒 O cadastro exige validação de identidade e consentimento mútuo das partes.
         </div>
         <div class="form-group">
             <label>Nome Completo / Artístico:</label>
@@ -106,17 +101,15 @@ SITE_HTML = """
         <div class="form-group">
             <label>📸 Verificação Facial / Documento:</label>
             <input type="file" id="novoFotoFacial" class="form-control" accept="image/*">
-            <small style="color:#78909c; font-size:11px;">Envie uma foto nítida do rosto para aprovação do perfil.</small>
         </div>
         <div class="form-group">
             <label>Crie uma Senha:</label>
             <input type="password" id="novoSenha" class="form-control" placeholder="Mínimo 6 dígitos">
         </div>
-        <button class="btn-opcao btn-destaque" onclick="finalizarCadastro()">Enviar para Análise e Cadastro</button>
+        <button class="btn-opcao btn-destaque" onclick="finalizarCadastro()">Enviar para Análise</button>
         <button class="btn-opcao" style="background:#333;" onclick="mostrarTela('tela-criador-menu')">Voltar</button>
     </div>
 
-    <!-- TELA 2B: CONSUMIDOR (CONFIRMAÇÃO MAIORIDADE + CATÁLOGO) -->
     <div id="tela-idade-consumidor" class="container tela">
         <h2>⚠️ Confirmação de Idade (+18)</h2>
         <p>Este ambiente contém conteúdos restritos para maiores de 18 anos. Você confirma ter idade legal?</p>
@@ -124,7 +117,6 @@ SITE_HTML = """
         <button class="btn-opcao" style="background:#d32f2f;" onclick="window.location.href='https://www.google.com'">Não, sair</button>
     </div>
 
-    <!-- TELA 3: CATÁLOGO DO CONSUMIDOR -->
     <div id="tela-catalogo" class="container tela" style="max-width: 500px;">
         <h2>🔥 Diretório & Catálogo VIP</h2>
         <p style="margin-bottom:10px;">Área exclusiva para clientes e consumidores.</p>
@@ -136,20 +128,6 @@ SITE_HTML = """
             <div class="price">R$ 10,00</div>
             <button class="comprar" onclick="alert('Redirecionando para pagamento...')">Comprar Acesso (R$ 10)</button>
         </div>
-
-        <div class="product">
-            <h3>Alice Vance (Criadora de Conteúdo)</h3>
-            <p>Pack exclusivo e atualizado na nuvem.</p>
-            <div class="price">R$ 15,00</div>
-            <button class="comprar" onclick="alert('Redirecionando para pagamento...')">Comprar Pack</button>
-        </div>
-
-        <div class="product">
-            <h3>Juliana (Acompanhante - Birigui/SP)</h3>
-            <p>Atendimento exclusivo na região com total consentimento.</p>
-            <div class="price">Contato VIP</div>
-            <button class="comprar" onclick="alert('Liberando contato...')">Liberar Contato (R$ 10)</button>
-        </div>
     </div>
 
     <script>
@@ -157,27 +135,21 @@ SITE_HTML = """
             document.querySelectorAll('.tela').forEach(el => el.classList.remove('ativa'));
             document.getElementById(idTela).classList.add('ativa');
         }
-
         function irParaCriador() { mostrarTela('tela-criador-menu'); }
         function irParaConsumidor() { mostrarTela('tela-idade-consumidor'); }
         function voltarParaEscolha() { mostrarTela('tela-escolha'); }
         function entrarComoConsumidor() { mostrarTela('tela-catalogo'); }
-
         function fazerLogin() {
             let user = document.getElementById('loginUser').value;
             if(!user) { alert('Preencha seu login!'); return; }
-            alert('Login efetuado com sucesso! Bem-vindo ao painel.');
+            alert('Login efetuado com sucesso!');
             mostrarTela('tela-catalogo');
         }
-
         function finalizarCadastro() {
             let nome = document.getElementById('novoNome').value;
             let email = document.getElementById('novoEmail').value;
-            if(!nome || !email) {
-                alert('Por favor, preencha pelo menos o nome e o e-mail!');
-                return;
-            }
-            alert('Cadastro enviado com sucesso! Seus dados e verificação facial foram registrados.');
+            if(!nome || !email) { alert('Preencha pelo menos nome e e-mail!'); return; }
+            alert('Cadastro enviado com sucesso!');
             mostrarTela('tela-catalogo');
         }
     </script>
@@ -185,18 +157,27 @@ SITE_HTML = """
 </html>
 """
 
+# Rota principal (Mostra o Site)
 @app.route('/')
 def home():
     return SITE_HTML
 
-# Rota opcional reservada caso seu bot use Webhook do Telegram no futuro
+# Rota onde o Telegram vai enviar as mensagens do bot (Webhook)
 @app.route('/webhook', methods=['POST'])
-def webhook_telegram():
+def webhook():
     data = request.get_json()
-    # Aqui você pode processar as mensagens do seu bot se necessário
+    if data and 'message' in data:
+        chat_id = data['message']['chat']['id']
+        texto_recebido = data['message'].get('text', '')
+
+        # Resposta automática simples do bot
+        resposta = f"Olá! Recebi sua mensagem: '{texto_recebido}'. Acesse nosso site principal pelo link do Render."
+        
+        # Envia de volta para o Telegram
+        requests.post(TELEGRAM_URL, json={'chat_id': chat_id, 'text': resposta})
+
     return jsonify({"status": "ok"})
 
 if __name__ == '__main__':
-    # O Render injeta a porta automaticamente; se rodar local, usa a porta 5000
     porta = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=porta)
