@@ -1,4 +1,5 @@
 import os
+import time
 import requests
 from flask import Flask, request, jsonify, render_template_string
 
@@ -7,7 +8,9 @@ app = Flask(__name__)
 # Credenciais e Configurações
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-LINK_GRUPO_VIP = "https://t.me/+UG_uDePtRW9lOTg5"
+
+# ATENÇÃO: Substitua abaixo pelo ID numérico correto do seu grupo/canal do Telegram (Ex: -1001234567890)
+TELEGRAM_CHAT_ID = "-100xxxxxxxxxx" 
 
 SITE_HTML = """
 <!DOCTYPE html>
@@ -157,7 +160,7 @@ SITE_HTML = """
         <p>Tenha acesso direto ao nosso canal fechado com atualizações diárias e conteúdo sem censura.</p>
 
         <div class="badge-aviso">
-            💡 <b>Modo de Teste:</b> Gere seu Pix de teste. Assim que o Mercado Pago reconhecer o pagamento de R$ 1,00, o seu acesso será liberado instantaneamente.
+            💡 <b>Modo Automático:</b> Após a confirmação do pagamento, o sistema gera instantaneamente um link exclusivo de uso único com validade de 3 minutos.
         </div>
 
         <div style="font-size: 28px; font-weight: bold; color: #00e676; margin-bottom: 25px;">
@@ -180,20 +183,20 @@ SITE_HTML = """
             <button class="btn-opcao" style="padding: 10px; font-size: 13px; margin-bottom: 0;" onclick="copiarChavePix()">📋 Copiar Chave Pix</button>
         </div>
 
-        <p id="statusPagamento" style="font-size: 13px; color: #ff2a6d; margin-top: 15px;">⏳ Aguardando o reconhecimento do pagamento...</p>
+        <p id="statusPagamento" style="font-size: 13px; color: #ff2a6d; margin-top: 15px;">⏳ Aguardando a aprovação do pagamento...</p>
         <button class="btn-opcao" style="background: transparent; border: none; color: #a1a1aa; margin-top: 10px;" onclick="mostrarTela('tela-home')">⬅ Cancelar / Voltar</button>
     </div>
 
-    <!-- TELA 4: Sucesso - Link Direto Fixo -->
+    <!-- TELA 4: Sucesso - Link Único Gerado Automaticamente -->
     <div id="tela-sucesso" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
         <h2>🎉 Pagamento Aprovado!</h2>
-        <p>Identificamos a transação com sucesso através do Mercado Pago. Clique no botão abaixo para entrar no grupo:</p>
+        <p>Seu link de acesso exclusivo foi gerado e validado pela automação:</p>
 
-        <a href="https://t.me/+UG_uDePtRW9lOTg5" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px; display: block; text-decoration: none;">
+        <a id="linkTelegram" href="" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px; display: block; text-decoration: none;">
             🚀 Entrar no Grupo do Telegram Agora
         </a>
-        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Seu acesso é vitalício e exclusivo.</p>
+        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">⚠️ Este link expira automaticamente após o primeiro uso ou em 3 minutos.</p>
     </div>
 
     <script>
@@ -251,6 +254,7 @@ SITE_HTML = """
 
                 if (data.status === 'approved') {
                     clearInterval(checkInterval);
+                    document.getElementById('linkTelegram').href = data.link_grupo;
                     mostrarTela('tela-sucesso');
                 }
             } catch (err) {
@@ -277,7 +281,7 @@ def criar_pagamento():
     
     payload = {
         "transaction_amount": 1.00,
-        "description": "Teste de Reconhecimento - Agência Bot",
+        "description": "Teste Automático - Agência Bot",
         "payment_method_id": "pix",
         "payer": {
             "email": "teste@agenciabot.com"
@@ -315,11 +319,29 @@ def verificar_pagamento(payment_id):
         return jsonify({"status": "pending"})
 
     res_data = response.json()
-    status = res_data.get("status") # 'approved', 'pending', etc.
+    status = res_data.get("status")
+
+    link_convite = "https://t.me/" # Padrão caso dê falha
+
+    # Se o pagamento foi aprovado, geramos um link único com validade estrita de 3 minutos
+    if status == 'approved':
+        tempo_expiracao = int(time.time()) + 180  # 180 segundos = 3 minutos
+
+        tg_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/createChatInviteLink"
+        tg_payload = {
+            "chat_id": TELEGRAM_CHAT_ID,
+            "member_limit": 1,          # Limite de 1 único uso
+            "expire_date": tempo_expiracao  # Expira em exatamente 3 minutos
+        }
+        tg_response = requests.post(tg_url, json=tg_payload)
+        tg_data = tg_response.json()
+        
+        if tg_data.get("ok"):
+            link_convite = tg_data["result"]["invite_link"]
 
     return jsonify({
         "status": status,
-        "link_grupo": LINK_GRUPO_VIP
+        "link_grupo": link_convite
     })
 
 if __name__ == '__main__':
