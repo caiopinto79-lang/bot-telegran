@@ -1,47 +1,66 @@
 import os
-import logging
-from threading import Thread
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+import threading
+from flask import Flask
+import telebot
 
-# 1. Mini servidor HTTP para atender às exigências de porta do Render
-class SimpleHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-        self.wfile.write(b"Bot is active and running!")
+# 1. Configuração do Token do Telegram
+# Dica: Você pode colar o seu token direto aqui entre as aspas para testar no PyCharm,
+# ou configurar nas variáveis de ambiente do seu computador/servidor.
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "COLE_SEU_TOKEN_AQUI_SE_QUISER")
+
+bot = telebot.TeleBot(TOKEN)
+
+# 2. Configuração do Servidor Web (Flask) para manter a aplicação viva na nuvem
+app = Flask(__name__)
+
+
+@app.route('/')
+def home():
+    return "Agência Bot está rodando com sucesso e online!"
+
 
 def run_web_server():
-    port = int(os.environ.get("PORT", 10000))
-    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
-    server.serve_forever()
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host="0.0.0.0", port=port)
 
-# 2. Configuração de logs
-logging.basicConfig(
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.INFO
-)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Olá! O @QuickBookrosaBot está online e operando na nuvem!")
+# 3. Comandos do Telegram do seu Bot
+@bot.message_handler(commands=['start'])
+def enviar_boas_vindas(message):
+    nome_usuario = message.from_user.first_name
+    texto = (
+        f"Olá, {nome_usuario}! Seja muito bem-vindo(a) à **Agência Bot**.\n\n"
+        "Como posso te ajudar hoje? Escolha uma das opções abaixo:\n"
+        "/produtos - Ver catálogo e ofertas\n"
+        "/ajuda - Falar com o suporte"
+    )
+    bot.reply_to(message, texto, parse_mode="Markdown")
 
-def main():
-    token = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 
-    # Inicia o servidor web secundário
-    Thread(target=run_web_server, daemon=True).start()
-    print("Servidor web secundário iniciado na porta HTTP...")
+@bot.message_handler(commands=['produtos', 'catalogo'])
+def listar_produtos(message):
+    texto = (
+        "🛍️ **Catálogo Disponível:**\n\n"
+        "• Linha de Cosméticos e Perfumaria\n"
+        "• Assinaturas de Canais e Streaming\n\n"
+        "Entre em contato para consultar valores e disponibilidade!"
+    )
+    bot.reply_to(message, texto, parse_mode="Markdown")
 
-    try:
-        # Constrói a aplicação
-        application = Application.builder().token(token).build()
-        application.add_handler(CommandHandler("start", start))
 
-        print("Iniciando o bot do Telegram em modo Polling...")
-        application.run_polling()
-    except Exception as e:
-        print(f"ERRO CRTICO AO INICIAR O BOT: {e}")
+@bot.message_handler(commands=['ajuda'])
+def enviar_ajuda(message):
+    bot.reply_to(message, "Se precisar de suporte, envie sua dúvida por aqui que logo responderemos.")
 
-if __name__ == '__main__':
-    main()
+
+# 4. Execução Simultânea (Servidor Web + Bot)
+if __name__ == "__main__":
+    # Inicia o servidor web em segundo plano (Thread)
+    web_thread = threading.Thread(target=run_web_server)
+    web_thread.daemon = True
+    web_thread.start()
+
+    print("Servidor web e Agência Bot iniciados com sucesso! Pressiona Ctrl+C para parar.")
+
+    # Inicia o bot do Telegram (escutando as mensagens)
+    bot.infinity_polling()
