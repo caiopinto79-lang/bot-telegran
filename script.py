@@ -4,7 +4,7 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
-# Token do seu bot do Telegram (se quiser configurar depois)
+# Token do seu bot do Telegram
 TOKEN = os.environ.get('TELEGRAM_TOKEN', 'SEU_TOKEN_AQUI')
 TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
 
@@ -162,7 +162,7 @@ SITE_HTML = """
 def home():
     return SITE_HTML
 
-# Rota onde o Telegram vai enviar as mensagens do bot (Webhook)
+# Rota do Bot do Telegram (Webhook)
 @app.route('/webhook', methods=['POST'])
 def webhook():
     data = request.get_json()
@@ -170,10 +170,7 @@ def webhook():
         chat_id = data['message']['chat']['id']
         texto_recebido = data['message'].get('text', '')
 
-        # Resposta automática simples do bot
         resposta = f"Olá! Recebi sua mensagem: '{texto_recebido}'. Acesse nosso site principal pelo link do Render."
-        
-        # Envia de volta para o Telegram
         requests.post(TELEGRAM_URL, json={'chat_id': chat_id, 'text': resposta})
 
     return jsonify({"status": "ok"})
