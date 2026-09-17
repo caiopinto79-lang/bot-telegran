@@ -1,11 +1,13 @@
 import os
 import requests
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-TELEGRAM_URL = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+# Credenciais e Configurações
+MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
+TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
+LINK_GRUPO_VIP = "https://t.me/seu_grupo_vip_agencia_bot" # Substitua pelo link real do seu grupo/canal
 
 SITE_HTML = """
 <!DOCTYPE html>
@@ -15,7 +17,6 @@ SITE_HTML = """
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Agência Bot - Plataforma Oficial</title>
     <style>
-        /* Configuração Global e Fundo com Textura Sutil / Camada Estilizada */
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
             background-color: #0b0b0e; 
@@ -30,7 +31,6 @@ SITE_HTML = """
             box-sizing: border-box;
         }
 
-        /* Container Expansivo Responsivo */
         .container { 
             width: 100%; 
             max-width: 850px; 
@@ -44,11 +44,9 @@ SITE_HTML = """
             text-align: center;
         }
 
-        /* Oculta e exibe telas de forma dinâmica */
         .tela { display: none; }
         .tela.ativa { display: block; }
 
-        /* Logo Agência Bot Discreto e Elegante no Topo */
         .logo-agencia {
             font-size: 13px;
             text-transform: uppercase;
@@ -69,7 +67,6 @@ SITE_HTML = """
         h2 { color: #ff2a6d; margin-top: 0; font-size: 26px; letter-spacing: -0.5px; }
         p { color: #a1a1aa; font-size: 15px; line-height: 1.6; margin-bottom: 25px; }
 
-        /* Botões de Ação Modernos */
         .btn-opcao { 
             background: #27272a; 
             color: #fff; 
@@ -91,7 +88,6 @@ SITE_HTML = """
         .btn-destaque { background: #ff2a6d; color: #fff; border: none; box-shadow: 0 4px 15px rgba(255, 42, 109, 0.4); }
         .btn-destaque:hover { background: #e01b5d; }
 
-        /* Área do Pix / Mercado Pago */
         .pix-box {
             background: #121215;
             border: 1px solid #27272a;
@@ -99,20 +95,19 @@ SITE_HTML = """
             border-radius: 14px;
             margin: 20px 0;
         }
-        .qrcode-mock {
-            width: 170px;
-            height: 170px;
-            background: #fff;
+        
+        .qrcode-img {
+            width: 180px;
+            height: 180px;
             margin: 0 auto 15px auto;
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
-            font-size: 13px;
+            background: #fff;
+            padding: 8px;
+            box-sizing: border-box;
             border: 4px solid #ff2a6d;
+            display: block;
         }
+
         .chave-copia {
             background: #18181b;
             border: 1px dashed #52525b;
@@ -123,6 +118,8 @@ SITE_HTML = """
             font-size: 12px;
             word-break: break-all;
             margin-bottom: 12px;
+            max-height: 80px;
+            overflow-y: auto;
         }
 
         .badge-aviso {
@@ -136,7 +133,6 @@ SITE_HTML = """
             text-align: left;
         }
 
-        /* Responsividade para Computadores e Celulares */
         @media (min-width: 768px) {
             .container { padding: 45px; }
         }
@@ -154,65 +150,56 @@ SITE_HTML = """
         <button class="btn-opcao" onclick="alert('Acesso negado. É necessário ter mais de 18 anos.')" style="background:transparent; border-color:#333; color:#71717a;">Não tenho</button>
     </div>
 
-    <!-- TELA 2: Vitrine do Grupo VIP + Exibição do Processo -->
+    <!-- TELA 2: Vitrine do Grupo VIP -->
     <div id="tela-home" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
         <h2>🔥 Grupo VIP Exclusivo</h2>
         <p>Tenha acesso direto ao nosso canal fechado com atualizações diárias e conteúdo sem censura.</p>
 
         <div class="badge-aviso">
-            💡 <b>Como funciona:</b> Após realizar o pagamento via Pix ou Mercado Pago, o sistema reconhece a transação e libera instantaneamente o link de acesso exclusivo de uso único para você entrar no grupo com apenas um clique.
+            💡 <b>Como funciona:</b> Ao prosseguir, geramos um Pix exclusivo para você. Assim que o Mercado Pago reconhecer o pagamento, o link de acesso único será liberado automaticamente.
         </div>
 
         <div style="font-size: 28px; font-weight: bold; color: #00e676; margin-bottom: 25px;">
             R$ 49,90 <span style="font-size: 13px; color: #a1a1aa; font-weight: normal;">/ acesso mensal</span>
         </div>
 
-        <button class="btn-opcao btn-destaque" onclick="mostrarTela('tela-pagamento')">Realizar Pagamento do Acesso</button>
+        <button class="btn-opcao btn-destaque" onclick="gerarPagamentoPix()">Gerar Pix de Pagamento</button>
     </div>
 
-    <!-- TELA 3: Pagamento (QR Code / Copia e Cola) -->
+    <!-- TELA 3: Pagamento (QR Code Real + Copia e Cola gerado pelo MP) -->
     <div id="tela-pagamento" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
-        <h2>💳 Pagamento Seguro</h2>
-        <p>Escaneie o QR Code com o aplicativo do seu banco ou utilize a chave Pix (Copia e Cola).</p>
+        <h2>💳 Pagamento via Pix</h2>
+        <p>Escaneie o QR Code abaixo ou utilize a chave Pix Copia e Cola. O sistema aguardará a aprovação automática.</p>
 
         <div class="pix-box">
-            <div class="qrcode-mock">
-                [ QR CODE PIX ]
-            </div>
-            <div class="chave-copia" id="textoChavePix">
-                00020126580014br.gov.bcb.pix0136agencia-bot-pagamento-exemplo5204000053039865802BR5913Agencia Bot6009Sao Paulo63041C9C
-            </div>
+            <img id="qrCodeImg" class="qrcode-img" src="" alt="QR Code Pix">
+            
+            <div class="chave-copia" id="textoChavePix">Carregando chave Pix...</div>
             <button class="btn-opcao" style="padding: 10px; font-size: 13px; margin-bottom: 0;" onclick="copiarChavePix()">📋 Copiar Chave Pix</button>
         </div>
 
-        <p style="font-size: 13px; color: #71717a; margin-top: 15px;">Assim que efetuar o pagamento, clique no botão abaixo para simular a confirmação automática pelo Mercado Pago:</p>
-        <button class="btn-opcao btn-destaque" onclick="simularReconhecimentoMercadoPago()">Simular Pagamento Aprovado</button>
-        <button class="btn-opcao" style="background: transparent; border: none; color: #a1a1aa;" onclick="mostrarTela('tela-home')">⬅ Voltar</button>
+        <p id="statusPagamento" style="font-size: 13px; color: #ff2a6d; margin-top: 15px;">⏳ Aguardando confirmação do pagamento...</p>
+        <button class="btn-opcao" style="background: transparent; border: none; color: #a1a1aa; margin-top: 10px;" onclick="mostrarTela('tela-home')">⬅ Cancelar / Voltar</button>
     </div>
 
-    <!-- TELA 4: Processando / Reconhecendo Pagamento -->
-    <div id="tela-processando" class="container tela">
-        <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
-        <h2>🔄 Processando Transação...</h2>
-        <p>Aguarde um instante enquanto o Mercado Pago valida o seu Pix e libera a sua credencial exclusiva.</p>
-        <div style="font-size: 40px; margin: 30px 0;">⚡</div>
-    </div>
-
-    <!-- TELA 5: Sucesso - Link Único Liberado Automaticamente -->
+    <!-- TELA 4: Sucesso - Link Único Liberado -->
     <div id="tela-sucesso" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
         <h2>🎉 Pagamento Aprovado com Sucesso!</h2>
-        <p>Identificamos sua transação instantaneamente. Seu link exclusivo de uso único foi gerado.</p>
+        <p>Identificamos sua transação instantaneamente pelo Mercado Pago. Seu link exclusivo foi gerado.</p>
 
-        <a href="https://t.me/seu_grupo_vip_agencia_bot" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px;">
+        <a id="linkTelegram" href="" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px;">
             🚀 Entrar no Grupo do Telegram Agora
         </a>
-        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Este link expira automaticamente após o primeiro uso por motivos de segurança.</p>
+        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Este link expira automaticamente após o primeiro uso por segurança.</p>
     </div>
 
     <script>
+        let paymentId = null;
+        let checkInterval = null;
+
         function mostrarTela(idTela) {
             document.querySelectorAll('.tela').forEach(el => el.classList.remove('ativa'));
             document.getElementById(idTela).classList.add('ativa');
@@ -228,14 +215,48 @@ SITE_HTML = """
             });
         }
 
-        function simularReconhecimentoMercadoPago() {
-            // Vai para a tela de processamento automático
-            mostrarTela('tela-processando');
+        async function gerarPagamentoPix() {
+            mostrarTela('tela-pagamento');
+            document.getElementById('textoChavePix').innerText = "Gerando Pix exclusivo...";
             
-            // Simula o tempo de resposta da API do Mercado Pago validando o Pix (2.5 segundos) e libera o botão do Telegram
-            setTimeout(() => {
-                mostrarTela('tela-sucesso');
-            }, 2500);
+            try {
+                let response = await fetch('/criar-pagamento', { method: 'POST' });
+                let data = await response.json();
+
+                if (data.error) {
+                    alert('Erro ao gerar pagamento: ' + data.error);
+                    mostrarTela('tela-home');
+                    return;
+                }
+
+                paymentId = data.id;
+                document.getElementById('textoChavePix').innerText = data.qr_code;
+                document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + data.qr_code_base64;
+
+                // Inicia verificação automática a cada 4 segundos
+                checkInterval = setInterval(verificarStatusPagamento, 4000);
+
+            } catch (err) {
+                alert('Erro de conexão com o servidor.');
+                mostrarTela('tela-home');
+            }
+        }
+
+        async function verificarStatusPagamento() {
+            if (!paymentId) return;
+
+            try {
+                let response = await fetch(`/verificar-pagamento/${paymentId}`);
+                let data = await response.json();
+
+                if (data.status === 'approved') {
+                    clearInterval(checkInterval);
+                    document.getElementById('linkTelegram').href = data.link_grupo;
+                    mostrarTela('tela-sucesso');
+                }
+            } catch (err) {
+                console.log('Verificando status...');
+            }
         }
     </script>
 </body>
@@ -244,17 +265,63 @@ SITE_HTML = """
 
 @app.route('/')
 def home():
-    return SITE_HTML
+    return render_template_string(SITE_HTML)
 
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    data = request.get_json()
-    if data and 'message' in data:
-        chat_id = data['message']['chat']['id']
-        texto_recebido = data['message'].get('text', '')
-        resposta = f"Olá! Recebi sua mensagem: '{texto_recebido}'."
-        requests.post(TELEGRAM_URL, json={'chat_id': chat_id, 'text': resposta})
-    return jsonify({"status": "ok"})
+@app.route('/criar-pagamento', methods=['POST'])
+def criar_pagamento():
+    url = "https://api.mercadopago.com/v1/payments"
+    headers = {
+        "Authorization": f"Bearer {MP_ACCESS_TOKEN}",
+        "Content-Type": "application/json",
+        "X-Idempotency-Key": os.urandom(16).hex()
+    }
+    
+    payload = {
+        "transaction_amount": 49.90,
+        "description": "Acesso Mensal - Grupo VIP Agência Bot",
+        "payment_method_id": "pix",
+        "payer": {
+            "email": "cliente@agenciabot.com"
+        }
+    }
+
+    response = requests.post(url, json=payload, headers=headers)
+    res_data = response.json()
+
+    if response.status_code != 201 and response.status_code != 200:
+        return jsonify({"error": res_data.get("message", "Erro desconhecido no Mercado Pago")}), 400
+
+    point_of_interaction = res_data.get("point_of_interaction", {})
+    transaction_data = point_of_interaction.get("transaction_data", {})
+
+    qr_code = transaction_data.get("qr_code")
+    qr_code_base64 = transaction_data.get("qr_code_base64")
+    payment_id = res_data.get("id")
+
+    return jsonify({
+        "id": payment_id,
+        "qr_code": qr_code,
+        "qr_code_base64": qr_code_base64
+    })
+
+@app.route('/verificar-pagamento/<int:payment_id>', methods=['GET'])
+def verificar_pagamento(payment_id):
+    url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
+    headers = {
+        "Authorization": f"Bearer {MP_ACCESS_TOKEN}"
+    }
+
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200:
+        return jsonify({"status": "pending"})
+
+    res_data = response.json()
+    status = res_data.get("status") # 'approved', 'pending', etc.
+
+    return jsonify({
+        "status": status,
+        "link_grupo": LINK_GRUPO_VIP
+    })
 
 if __name__ == '__main__':
     porta = int(os.environ.get('PORT', 5000))
