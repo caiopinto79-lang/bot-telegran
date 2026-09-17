@@ -9,8 +9,8 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
 
-# ATENÇÃO: Substitua abaixo pelo ID numérico correto do seu grupo/canal do Telegram (Ex: -1001234567890)
-TELEGRAM_CHAT_ID = "-100xxxxxxxxxx" 
+# ID do seu grupo do Telegram devidamente configurado com o prefixo -100
+TELEGRAM_CHAT_ID = "-1002130298013" 
 
 SITE_HTML = """
 <!DOCTYPE html>
@@ -338,6 +338,8 @@ def verificar_pagamento(payment_id):
         
         if tg_data.get("ok"):
             link_convite = tg_data["result"]["invite_link"]
+        else:
+            print("Erro Telegram:", tg_data) # Ajuda a debugar caso o bot não seja admin
 
     return jsonify({
         "status": status,
