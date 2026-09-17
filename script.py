@@ -157,7 +157,7 @@ SITE_HTML = """
         <p>Tenha acesso direto ao nosso canal fechado com atualizações diárias e conteúdo sem censura.</p>
 
         <div class="badge-aviso">
-            💡 <b>Modo de Teste:</b> Gere seu Pix de teste. Assim que o Mercado Pago reconhecer o pagamento de R$ 1,00, o link de acesso será liberado automaticamente.
+            💡 <b>Modo de Teste:</b> Gere seu Pix de teste. Assim que o Mercado Pago reconhecer o pagamento de R$ 1,00, o seu acesso será liberado instantaneamente.
         </div>
 
         <div style="font-size: 28px; font-weight: bold; color: #00e676; margin-bottom: 25px;">
@@ -184,16 +184,16 @@ SITE_HTML = """
         <button class="btn-opcao" style="background: transparent; border: none; color: #a1a1aa; margin-top: 10px;" onclick="mostrarTela('tela-home')">⬅ Cancelar / Voltar</button>
     </div>
 
-    <!-- TELA 4: Sucesso - Link Único Liberado -->
+    <!-- TELA 4: Sucesso - Link Direto Fixo -->
     <div id="tela-sucesso" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
-        <h2>🎉 Reconhecimento Aprovado!</h2>
-        <p>Identificamos a transação com sucesso através do Mercado Pago. Seu acesso foi liberado.</p>
+        <h2>🎉 Pagamento Aprovado!</h2>
+        <p>Identificamos a transação com sucesso através do Mercado Pago. Clique no botão abaixo para entrar no grupo:</p>
 
-        <a id="linkTelegram" href="" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px;">
+        <a href="https://t.me/+UG_uDePtRW9lOTg5" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px; display: block; text-decoration: none;">
             🚀 Entrar no Grupo do Telegram Agora
         </a>
-        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Teste concluído com sucesso.</p>
+        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Seu acesso é vitalício e exclusivo.</p>
     </div>
 
     <script>
@@ -251,7 +251,6 @@ SITE_HTML = """
 
                 if (data.status === 'approved') {
                     clearInterval(checkInterval);
-                    document.getElementById('linkTelegram').href = data.link_grupo;
                     mostrarTela('tela-sucesso');
                 }
             } catch (err) {
