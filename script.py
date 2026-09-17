@@ -7,7 +7,7 @@ app = Flask(__name__)
 # Credenciais e Configurações
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-LINK_GRUPO_VIP = "https://t.me/seu_grupo_vip_agencia_bot" # Substitua pelo link real do seu grupo/canal
+LINK_GRUPO_VIP = "https://t.me/+UG_uDePtRW9lOTg5"
 
 SITE_HTML = """
 <!DOCTYPE html>
@@ -157,43 +157,43 @@ SITE_HTML = """
         <p>Tenha acesso direto ao nosso canal fechado com atualizações diárias e conteúdo sem censura.</p>
 
         <div class="badge-aviso">
-            💡 <b>Como funciona:</b> Ao prosseguir, geramos um Pix exclusivo para você. Assim que o Mercado Pago reconhecer o pagamento, o link de acesso único será liberado automaticamente.
+            💡 <b>Modo de Teste:</b> Gere seu Pix de teste. Assim que o Mercado Pago reconhecer o pagamento de R$ 1,00, o link de acesso será liberado automaticamente.
         </div>
 
         <div style="font-size: 28px; font-weight: bold; color: #00e676; margin-bottom: 25px;">
-            R$ 49,90 <span style="font-size: 13px; color: #a1a1aa; font-weight: normal;">/ acesso mensal</span>
+            R$ 1,00 <span style="font-size: 13px; color: #a1a1aa; font-weight: normal;">/ teste de acesso</span>
         </div>
 
-        <button class="btn-opcao btn-destaque" onclick="gerarPagamentoPix()">Gerar Pix de Pagamento</button>
+        <button class="btn-opcao btn-destaque" onclick="gerarPagamentoPix()">Gerar Pix de R$ 1,00</button>
     </div>
 
     <!-- TELA 3: Pagamento (QR Code Real + Copia e Cola gerado pelo MP) -->
     <div id="tela-pagamento" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
-        <h2>💳 Pagamento via Pix</h2>
-        <p>Escaneie o QR Code abaixo ou utilize a chave Pix Copia e Cola. O sistema aguardará a aprovação automática.</p>
+        <h2>💳 Reconhecimento Bancário</h2>
+        <p>Escaneie o QR Code abaixo ou utilize a chave Pix Copia e Cola para realizar o teste de validação.</p>
 
         <div class="pix-box">
             <img id="qrCodeImg" class="qrcode-img" src="" alt="QR Code Pix">
             
-            <div class="chave-copia" id="textoChavePix">Carregando chave Pix...</div>
+            <div class="chave-copia" id="textoChavePix">Gerando chave Pix...</div>
             <button class="btn-opcao" style="padding: 10px; font-size: 13px; margin-bottom: 0;" onclick="copiarChavePix()">📋 Copiar Chave Pix</button>
         </div>
 
-        <p id="statusPagamento" style="font-size: 13px; color: #ff2a6d; margin-top: 15px;">⏳ Aguardando confirmação do pagamento...</p>
+        <p id="statusPagamento" style="font-size: 13px; color: #ff2a6d; margin-top: 15px;">⏳ Aguardando o reconhecimento do pagamento...</p>
         <button class="btn-opcao" style="background: transparent; border: none; color: #a1a1aa; margin-top: 10px;" onclick="mostrarTela('tela-home')">⬅ Cancelar / Voltar</button>
     </div>
 
     <!-- TELA 4: Sucesso - Link Único Liberado -->
     <div id="tela-sucesso" class="container tela">
         <div class="logo-agencia">Plataforma Oficial • <span>Agência Bot</span></div>
-        <h2>🎉 Pagamento Aprovado com Sucesso!</h2>
-        <p>Identificamos sua transação instantaneamente pelo Mercado Pago. Seu link exclusivo foi gerado.</p>
+        <h2>🎉 Reconhecimento Aprovado!</h2>
+        <p>Identificamos a transação com sucesso através do Mercado Pago. Seu acesso foi liberado.</p>
 
         <a id="linkTelegram" href="" target="_blank" class="btn-opcao btn-destaque" style="font-size: 18px; padding: 20px; margin-top: 20px;">
             🚀 Entrar no Grupo do Telegram Agora
         </a>
-        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Este link expira automaticamente após o primeiro uso por segurança.</p>
+        <p style="font-size: 12px; color: #71717a; margin-top: 15px;">Teste concluído com sucesso.</p>
     </div>
 
     <script>
@@ -217,7 +217,7 @@ SITE_HTML = """
 
         async function gerarPagamentoPix() {
             mostrarTela('tela-pagamento');
-            document.getElementById('textoChavePix').innerText = "Gerando Pix exclusivo...";
+            document.getElementById('textoChavePix').innerText = "Gerando Pix exclusivo de teste...";
             
             try {
                 let response = await fetch('/criar-pagamento', { method: 'POST' });
@@ -277,11 +277,11 @@ def criar_pagamento():
     }
     
     payload = {
-        "transaction_amount": 49.90,
-        "description": "Acesso Mensal - Grupo VIP Agência Bot",
+        "transaction_amount": 1.00,
+        "description": "Teste de Reconhecimento - Agência Bot",
         "payment_method_id": "pix",
         "payer": {
-            "email": "cliente@agenciabot.com"
+            "email": "teste@agenciabot.com"
         }
     }
 
