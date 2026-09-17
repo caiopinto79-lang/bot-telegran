@@ -50,8 +50,8 @@ SITE_HTML = """
         .profile-thumb { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid #ff4081; }
         .product { background: #2a2a2a; border: 1px solid #333; padding: 12px; margin: 10px 0; border-radius: 8px; text-align: left; }
         .price { color: #00e676; font-weight: bold; font-size: 15px; margin-bottom: 8px; }
-        a.comprar { background: #ff4081; color: white; border: none; padding: 10px 12px; width: 100%; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
-        a.comprar:hover { background: #e91e63; }
+        a.comprar { background: #009ee3; color: white; border: none; padding: 10px 12px; width: 100%; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; display: block; text-align: center; text-decoration: none; box-sizing: border-box; }
+        a.comprar:hover { background: #0081be; }
         .avatar-preview { width: 80px; height: 80px; border-radius: 50%; background: #333; margin: 0 auto 15px auto; display: block; object-fit: cover; border: 2px solid #ff4081; }
     </style>
 </head>
@@ -158,8 +158,9 @@ SITE_HTML = """
 
         <div style="background: #2a2a2a; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
             <h3 style="font-size: 14px; margin-top:0; color:#ff4081;">📦 Criar Pacote de Conteúdo</h3>
-            <div class="form-group"><label>Título:</label><input type="text" id="pTitulo" class="form-control" placeholder="Ex: Pack VIP Fotos"></div>
+            <div class="form-group"><label>Título do Pacote:</label><input type="text" id="pTitulo" class="form-control" placeholder="Ex: Pack VIP Fotos"></div>
             <div class="form-group"><label>Valor (R$):</label><input type="number" id="pPreco" class="form-control" placeholder="20.00"></div>
+            <div class="form-group"><label>Link de Pagamento (Mercado Pago):</label><input type="text" id="pLinkMp" class="form-control" placeholder="https://mpago.la/xyz..."></div>
             <button class="btn-opcao btn-destaque" style="padding:10px; margin-bottom:0;" onclick="adicionarPacoteCriadora()">Publicar no Catálogo</button>
         </div>
     </div>
@@ -184,12 +185,12 @@ SITE_HTML = """
         <h2>🛍️ Área do Consumidor</h2>
         <p>O que você deseja acessar hoje?</p>
         
-        <div class="product" style="border-color:#ff4081; text-align:center;">
+        <div class="product" style="border-color:#009ee3; text-align:center;">
             <h3>🌟 Acesso Geral ao Grupo VIP</h3>
             <p>Todo o acervo principal liberado na nuvem.</p>
             <div class="price">R$ 10,00</div>
-            <!-- Link corrigido para a sua caixinha do Mercado Pago (substitua pelo seu link real quando tiver) -->
-            <a href="https://link.mercadopago.com.br/suacaixinha" target="_blank" class="comprar">Comprar Grupo VIP (Mercado Pago)</a>
+            <!-- Substitua pelo seu link oficial do Mercado Pago para o Grupo VIP -->
+            <a href="https://mpago.la/seu-link-vip" target="_blank" class="comprar">Pagar com Mercado Pago</a>
         </div>
 
         <button class="btn-opcao btn-destaque" style="margin-top:15px;" onclick="abrirCatalogoCriadoras('conteudo', 1)">📁 Catálogo de Conteúdos (A-Z)</button>
@@ -229,11 +230,22 @@ SITE_HTML = """
 
     <script>
         let criadorasBD = [
-            { nome: "Amanda S.", categoria: "ambos", local: "Birigui e Araçatuba - SP", desc: "Conteúdos diários e disponibilidade para atendimento VIP.", foto: "https://via.placeholder.com/80", pacotes: [{ titulo: "Pack Exclusivo 20 Fotos", preco: "25.00" }] },
-            { nome: "Bruna Lima", categoria: "conteudo", local: "Online / Todo o Brasil", desc: "Especialista em packs personalizados e vídeos sob encomenda.", foto: "https://via.placeholder.com/80", pacotes: [{ titulo: "Vídeo Privado 10min", preco: "40.00" }] },
-            { nome: "Carla Duarte", categoria: "job", local: "Birigui - SP", desc: "Acompanhante para eventos e encontros selecionados.", foto: "https://via.placeholder.com/80", pacotes: [] },
-            { nome: "Daniela Souza", categoria: "conteudo", local: "Online", desc: "Novidades diárias no feed e chat liberado.", foto: "https://via.placeholder.com/80", pacotes: [] },
-            { nome: "Eduarda Santos", categoria: "job", local: "Araçatuba - SP", desc: "Atendimento executivo.", foto: "https://via.placeholder.com/80", pacotes: [] }
+            { 
+                nome: "Amanda S.", 
+                categoria: "ambos", 
+                local: "Birigui e Araçatuba - SP", 
+                desc: "Conteúdos diários e disponibilidade para atendimento VIP.", 
+                foto: "https://via.placeholder.com/80", 
+                pacotes: [{ titulo: "Pack Exclusivo 20 Fotos", preco: "25.00", linkMp: "https://mpago.la/exemplo1" }] 
+            },
+            { 
+                nome: "Bruna Lima", 
+                categoria: "conteudo", 
+                local: "Online / Todo o Brasil", 
+                desc: "Especialista em packs personalizados e vídeos sob encomenda.", 
+                foto: "https://via.placeholder.com/80", 
+                pacotes: [{ titulo: "Vídeo Privado 10min", preco: "40.00", linkMp: "https://mpago.la/exemplo2" }] 
+            }
         ];
 
         let criadoraLogadaIndex = null;
@@ -276,13 +288,16 @@ SITE_HTML = """
         function adicionarPacoteCriadora() {
             let titulo = document.getElementById('pTitulo').value;
             let preco = document.getElementById('pPreco').value;
-            if(!titulo || !preco) { alert('Preencha o título e o valor!'); return; }
+            let linkMp = document.getElementById('pLinkMp').value;
+            
+            if(!titulo || !preco || !linkMp) { alert('Preencha o título, o valor e o link do Mercado Pago!'); return; }
 
             if(criadoraLogadaIndex !== null) {
-                criadorasBD[criadoraLogadaIndex].pacotes.push({ titulo: titulo, preco: preco });
+                criadorasBD[criadoraLogadaIndex].pacotes.push({ titulo: titulo, preco: preco, linkMp: linkMp });
                 alert('Pacote publicado com sucesso no seu perfil!');
                 document.getElementById('pTitulo').value = '';
                 document.getElementById('pPreco').value = '';
+                document.getElementById('pLinkMp').value = '';
             }
         }
 
@@ -355,7 +370,7 @@ SITE_HTML = """
                         <div class="product">
                             <h3>📦 ${p.titulo}</h3>
                             <div class="price">R$ ${parseFloat(p.preco).toFixed(2)}</div>
-                            <a href="https://link.mercadopago.com.br/suacaixinha" target="_blank" class="comprar">Comprar por R$ ${p.preco} (Mercado Pago)</a>
+                            <a href="${p.linkMp}" target="_blank" class="comprar">Pagar R$ ${p.preco} (Mercado Pago)</a>
                         </div>
                     `;
                 });
