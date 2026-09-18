@@ -1,225 +1,208 @@
 import os
-import requests
-from flask import Flask, render_template_string, request, jsonify
+import time
+from flask import Flask, render_template_string, request, redirect, url_for, session
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24) # Necessário para controlar sessões de segurança
 
-# Credenciais oficiais do Mercado Pago
-MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
+# Links reais das redes sociais da Iasmin
+INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
+TIKTOK_LINK = "https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE"
+KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
-# Link do Canal de Prévias do Telegram da Iasmin (substitua pelo link real quando quiser)
-LINK_CANAL_PREVIAS = "https://t.me/+SEU_LINK_DO_CANAL_DE_PREVIAS"
+# Links das plataformas +18 (substitua pelos links reais quando tiver)
+PRIVACY_LINK = "#"
+TELEGRAM_PREVIAS_LINK = "#"
+TELEGRAM_VIP_LINK = "#"
 
-# Links das Redes Sociais da Iasmin (substitua pelos perfis reais dela)
-INSTAGRAM_LINK = "https://instagram.com/seus_perfil"
-TIKTOK_LINK = "https://tiktok.com/@seus_perfil"
-KWAI_LINK = "https://kwai.com/@seus_perfil"
+# Dicionário temporário para controle de bloqueio por IP (armazena o timestamp de liberação)
+ip_blocklist = {}
 
-HTML_TEMPLATE = """
+def verificar_bloqueio():
+    ip = request.remote_addr
+    if ip in ip_blocklist:
+        tempo_restante = ip_blocklist[ip] - time.time()
+        if tempo_restante > 0:
+            return int(tempo_restante / 60) + 1 # Retorna os minutos restantes
+        else:
+            del ip_blocklist[ip] # Expirou o tempo, remove da lista
+    return 0
+
+# --- PÁGINA 1: VITRINE PRINCIPAL ---
+@app.route("/")
+def index():
+    return render_template_string("""
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iasmin - Links e Conteúdos</title>
+    <title>Iasmin - Links Oficiais</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
         .container { background: rgba(24, 24, 27, 0.95); padding: 35px 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 100%; max-width: 450px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
         
-        /* Perfil */
         .avatar { width: 90px; height: 90px; border-radius: 50%; background: #ff2a6d; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 36px; font-weight: bold; color: #fff; border: 3px solid rgba(255,42,109,0.4); }
         h1 { color: #fff; font-size: 22px; margin-bottom: 5px; }
         .bio { font-size: 13px; color: #a1a1aa; margin-bottom: 25px; }
-
-        h2 { color: #ff2a6d; margin-bottom: 15px; font-size: 20px; }
-        p { font-size: 14px; color: #a1a1aa; margin-bottom: 20px; line-height: 1.5; }
         
-        /* Botões */
         .btn { background-color: #ff2a6d; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-size: 15px; cursor: pointer; width: 100%; font-weight: bold; transition: all 0.2s; margin-top: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(255,42,109,0.3); }
         .btn:hover { background-color: #e01b5d; transform: translateY(-2px); }
         
         .btn-social { background-color: #18181b; border: 1px solid #27272a; color: #f1f1f1; }
         .btn-social:hover { background-color: #27272a; border-color: #ff2a6d; }
         
-        .btn-secundario { background-color: #27272a; border: 1px solid #3f3f46; color: #fff; }
-        .btn-secundario:hover { background-color: #3f3f46; }
+        .btn-adult { background: linear-gradient(135deg, #ff2a6d, #9d4edd); box-shadow: 0 4px 15px rgba(157,78,221,0.4); }
+        .btn-adult:hover { opacity: 0.9; }
         
-        .hidden { display: none; }
-        
-        /* Caixa do Pix */
-        .pix-box { background: #121215; padding: 20px; border-radius: 12px; border: 1px solid #27272a; margin-top: 15px; text-align: left; }
-        .qrcode-img { width: 150px; height: 150px; margin: 0 auto 15px auto; border-radius: 8px; background: #fff; padding: 6px; display: block; border: 3px solid #ff2a6d; }
-        .chave-copia { background: #18181b; border: 1px dashed #52525b; color: #f1f1f1; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px; word-break: break-all; margin-bottom: 10px; max-height: 70px; overflow-y: auto; }
-        
-        .status-aguardando { color: #ff2a6d; font-weight: bold; font-size: 13px; margin-top: 15px; text-align: center; }
         .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 25px 0; }
+        .section-title { font-size: 14px; color: #a1a1aa; margin-bottom: 10px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Vitrine / Mini Site Principal da Iasmin -->
-        <div id="step-home">
-            <div class="avatar">I</div>
-            <h1>Iasmin</h1>
-            <div class="bio">Bem-vindo(a) ao meu portal oficial! Acompanhe minhas redes sociais abaixo.</div>
+        <div class="avatar">I</div>
+        <h1>Iasmin</h1>
+        <div class="bio">Bem-vindo(a) ao meu portal oficial! Fique por dentro de todas as novidades.</div>
 
-            <!-- Botões das Redes Sociais -->
-            <a href="INSTAGRAM_URL_PLACEHOLDER" target="_blank" class="btn btn-social">📸 Instagram Oficial</a>
-            <a href="TIKTOK_URL_PLACEHOLDER" target="_blank" class="btn btn-social">🎬 TikTok</a>
-            <a href="KWAI_URL_PLACEHOLDER" target="_blank" class="btn btn-social">⚡ Kwai</a>
+        <div class="section-title">Redes Sociais</div>
+        <a href="{{ instagram }}" target="_blank" class="btn btn-social">📸 Instagram Oficial</a>
+        <a href="{{ tiktok }}" target="_blank" class="btn btn-social">🎬 TikTok</a>
+        <a href="{{ kwai }}" target="_blank" class="btn btn-social">⚡ Kwai</a>
 
-            <div class="divider"></div>
+        <div class="divider"></div>
 
-            <!-- Seção do Canal de Prévias via Pix -->
-            <div style="background: rgba(255,42,109,0.05); border: 1px solid rgba(255,42,109,0.2); padding: 20px; border-radius: 14px;">
-                <h3 style="color: #ff2a6d; font-size: 17px; margin-bottom: 8px;">🔥 Canal de Prévias VIP</h3>
-                <p style="font-size: 13px; margin-bottom: 15px;">Tenha acesso liberado ao canal de prévias exclusivo.</p>
-                <div style="font-size: 22px; font-weight: bold; color: #00e676; margin-bottom: 15px;">R$ 1,00 <span style="font-size: 11px; color: #a1a1aa; font-weight: normal;">/ acesso</span></div>
-                <button class="btn" onclick="gerarPagamentoPix()">Liberar Acesso via Pix</button>
-            </div>
-        </div>
-
-        <!-- Etapa de Pagamento (Pix) -->
-        <div id="step-pagamento" class="hidden">
-            <h2>💳 Pagamento Pix</h2>
-            <p>Escaneie o QR Code ou copie a chave abaixo para liberar o acesso instantaneamente:</p>
-            
-            <div class="pix-box">
-                <img id="qrCodeImg" class="qrcode-img" src="" alt="QR Code Pix">
-                <div class="chave-copia" id="textoChavePix">Carregando chave...</div>
-                <button class="btn btn-secundario" style="padding: 10px; font-size: 12px; margin: 0; width: 100%;" onclick="copiarChave()">📋 Copiar Pix Copia e Cola</button>
-            </div>
-
-            <p id="statusPagamento" class="status-aguardando">⏳ Aguardando a aprovação do pagamento...</p>
-        </div>
-
-        <!-- Etapa de Sucesso (Liberação do Canal) -->
-        <div id="step-success" class="hidden">
-            <h2>🎉 Pagamento Aprovado!</h2>
-            <p>Obrigado! O seu pagamento foi confirmado com sucesso. Clique abaixo para entrar no canal de prévias:</p>
-            <a id="linkTelegram" href="" target="_blank" class="btn" style="background-color: #00e676; color: #000;">🚀 Entrar no Canal de Prévias</a>
-            <p style="font-size: 11px; color: #71717a; margin-top: 15px;">⚠️ Aproveite o conteúdo exclusivo!</p>
-        </div>
+        <div class="section-title">Conteúdos Exclusivos</div>
+        <a href="/aviso-idade" class="btn btn-adult">🔥 Conteúdos +18 (Privacy & VIP)</a>
     </div>
-
-    <script>
-        let paymentId = null;
-        let checkInterval = null;
-
-        function copiarChave() {
-            let texto = document.getElementById('textoChavePix').innerText;
-            navigator.clipboard.writeText(texto).then(() => {
-                alert('Chave Pix copiada com sucesso!');
-            });
-        }
-
-        async function gerarPagamentoPix() {
-            document.getElementById('step-home').classList.add('hidden');
-            document.getElementById('step-pagamento').classList.remove('hidden');
-            
-            try {
-                let response = await fetch('/criar-pagamento', { method: 'POST' });
-                let data = await response.json();
-
-                if (data.error) {
-                    alert('Erro: ' + data.error);
-                    location.reload();
-                    return;
-                }
-
-                paymentId = data.id;
-                document.getElementById('textoChavePix').innerText = data.qr_code;
-                document.getElementById('qrCodeImg').src = 'data:image/png;base64,' + data.qr_code_base64;
-
-                // Checa o status do pagamento a cada 4 segundos
-                checkInterval = setInterval(verificarStatus, 4000);
-            } catch (err) {
-                alert('Erro de conexão ao gerar o Pix.');
-                location.reload();
-            }
-        }
-
-        async function verificarStatus() {
-            if (!paymentId) return;
-
-            try {
-                let response = await fetch(`/verificar-pagamento/${paymentId}`);
-                let data = await response.json();
-
-                if (data.status === 'approved') {
-                    clearInterval(checkInterval);
-                    document.getElementById('linkTelegram').href = data.link_canal;
-                    document.getElementById('step-pagamento').classList.add('hidden');
-                    document.getElementById('step-success').classList.remove('hidden');
-                }
-            } catch (err) {
-                console.log('Verificando status...');
-            }
-        }
-    </script>
 </body>
 </html>
-"""
+""", instagram=INSTAGRAM_LINK, tiktok=TIKTOK_LINK, kwai=KWAI_LINK)
 
-@app.route("/")
-def index():
-    rendered_html = HTML_TEMPLATE.replace("INSTAGRAM_URL_PLACEHOLDER", INSTAGRAM_LINK) \
-                                 .replace("TIKTOK_URL_PLACEHOLDER", TIKTOK_LINK) \
-                                 .replace("KWAI_URL_PLACEHOLDER", KWAI_LINK)
-    return render_template_string(rendered_html)
+# --- PÁGINA 2: AVISO DE MAIORIDADE (IDADE) ---
+@app.route("/aviso-idade")
+def aviso_idade():
+    minutos_bloqueio = verificar_bloqueio()
+    if minutos_bloqueio > 0:
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Acesso Restrito</title>
+            <style>
+                * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+                body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+                .container { background: rgba(24, 24, 27, 0.95); padding: 35px 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 100%; max-width: 450px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+                h2 { color: #ff2a6d; margin-bottom: 15px; font-size: 22px; }
+                p { font-size: 14px; color: #a1a1aa; margin-bottom: 20px; line-height: 1.5; }
+                .btn { background-color: #27272a; color: white; border: 1px solid #3f3f46; padding: 12px 20px; border-radius: 12px; font-size: 14px; cursor: pointer; width: 100%; text-decoration: none; display: inline-block; font-weight: bold; }
+                .btn:hover { background-color: #3f3f46; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>⛔ Acesso Temporariamente Indisponível</h2>
+                <p>O acesso a esta área foi restrito para este dispositivo devido à negação da idade mínima.</p>
+                <p>Tente novamente em aproximadamente <b>{{ min }} minuto(s)</b>.</p>
+                <a href="/" class="btn">Voltar para a Página Inicial</a>
+            </div>
+        </body>
+        </html>
+        """, min=minutos_bloqueio)
 
-@app.route('/criar-pagamento', methods=['POST'])
-def criar_pagamento():
-    url = "https://api.mercadopago.com/v1/payments"
-    headers = {
-        "Authorization": f"Bearer {MP_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-        "X-Idempotency-Key": os.urandom(16).hex()
-    }
-    
-    payload = {
-        "transaction_amount": 1.00,
-        "description": "Acesso - Canal de Prévias Iasmin",
-        "payment_method_id": "pix",
-        "payer": {
-            "email": "cliente@iasmin.com"
-        }
-    }
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Verificação de Idade</title>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+            body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+            .container { background: rgba(24, 24, 27, 0.95); padding: 35px 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 100%; max-width: 450px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+            h2 { color: #ff2a6d; margin-bottom: 15px; font-size: 22px; }
+            p { font-size: 14px; color: #a1a1aa; margin-bottom: 25px; line-height: 1.5; }
+            .btn { background-color: #ff2a6d; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-size: 15px; cursor: pointer; width: 100%; font-weight: bold; transition: all 0.2s; margin-top: 12px; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px rgba(255,42,109,0.3); }
+            .btn:hover { background-color: #e01b5d; }
+            .btn-secundario { background-color: #27272a; border: 1px solid #3f3f46; color: #fff; box-shadow: none; }
+            .btn-secundario:hover { background-color: #3f3f46; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>⚠️ Conteúdo Restrito (+18)</h2>
+            <p>Este ambiente contém material adulto exclusivo para maiores de 18 anos.<br><br>Você confirma que tem 18 anos ou mais?</p>
+            <a href="/acesso-autorizado" class="btn">Sim, tenho 18 anos ou mais</a>
+            <a href="/bloquear-acesso" class="btn btn-secundario">Não tenho</a>
+        </div>
+    </body>
+    </html>
+    """)
 
-    response = requests.post(url, json=payload, headers=headers)
-    res_data = response.json()
+# --- ROTA: BLOQUEIO DE IP (5 MINUTOS) ---
+@app.route("/bloquear-acesso")
+def bloquear_acesso():
+    ip = request.remote_addr
+    # Bloqueia o IP por 300 segundos (5 minutos)
+    ip_blocklist[ip] = time.time() + 300
+    return redirect(url_for('aviso_idade'))
 
-    if response.status_code not in [200, 201]:
-        return jsonify({"error": res_data.get("message", "Erro ao conectar com o Mercado Pago")}), 400
+# --- ROTA: ACESSO AUTORIZADO ÀS PLATAFORMAS ---
+@app.route("/acesso-autorizado")
+def acesso_autorizado():
+    session['maior_idade'] = True
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Iasmin - Conteúdos Exclusivos</title>
+        <style>
+            * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+            body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+            .container { background: rgba(24, 24, 27, 0.95); padding: 35px 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); width: 100%; max-width: 450px; text-align: center; border: 1px solid rgba(255,255,255,0.08); }
+            
+            .avatar { width: 80px; height: 80px; border-radius: 50%; background: #ff2a6d; margin: 0 auto 15px auto; display: flex; align-items: center; justify-content: center; font-size: 32px; font-weight: bold; color: #fff; border: 3px solid rgba(255,42,109,0.4); }
+            h1 { color: #fff; font-size: 20px; margin-bottom: 5px; }
+            .bio { font-size: 13px; color: #a1a1aa; margin-bottom: 25px; }
+            
+            .btn { background-color: #ff2a6d; color: white; border: none; padding: 14px 20px; border-radius: 12px; font-size: 15px; cursor: pointer; width: 100%; font-weight: bold; transition: all 0.2s; margin-top: 12px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 15px rgba(255,42,109,0.3); }
+            .btn:hover { background-color: #e01b5d; transform: translateY(-2px); }
+            
+            .btn-privacy { background-color: #00aff0; box-shadow: 0 4px 15px rgba(0,175,240,0.3); }
+            .btn-privacy:hover { background-color: #0091d0; }
+            
+            .btn-telegram { background-color: #229ed9; box-shadow: 0 4px 15px rgba(34,158,217,0.3); }
+            .btn-telegram:hover { background-color: #1b85b8; }
+            
+            .btn-vip { background-color: #00e676; color: #000; box-shadow: 0 4px 15px rgba(0,230,118,0.3); }
+            .btn-vip:hover { background-color: #00c853; }
+            
+            .back-link { display: inline-block; margin-top: 20px; font-size: 13px; color: #a1a1aa; text-decoration: none; }
+            .back-link:hover { color: #fff; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="avatar">I</div>
+            <h1>Área Exclusiva +18</h1>
+            <div class="bio">Escolha abaixo onde deseja acessar os conteúdos da Iasmin:</div>
 
-    point_of_interaction = res_data.get("point_of_interaction", {})
-    transaction_data = point_of_interaction.get("transaction_data", {})
+            <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
+            <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
+            <a href="{{ vip }}" target="_blank" class="btn btn-vip">👑 Canal VIP Telegram</a>
 
-    return jsonify({
-        "id": res_data.get("id"),
-        "qr_code": transaction_data.get("qr_code"),
-        "qr_code_base64": transaction_data.get("qr_code_base64")
-    })
-
-@app.route('/verificar-pagamento/<int:payment_id>', methods=['GET'])
-def verificar_pagamento(payment_id):
-    url = f"https://api.mercadopago.com/v1/payments/{payment_id}"
-    headers = {"Authorization": f"Bearer {MP_ACCESS_TOKEN}"}
-
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200:
-        return jsonify({"status": "pending"})
-
-    res_data = response.json()
-    status = res_data.get("status")
-    
-    link_canal = LINK_CANAL_PREVIAS if status == 'approved' else ""
-
-    return jsonify({
-        "status": status,
-        "link_canal": link_canal
-    })
+            <br>
+            <a href="/" class="back-link">← Voltar para a página inicial</a>
+        </div>
+    </body>
+    </html>
+    """, privacy=PRIVACY_LINK, previas=TELEGRAM_PREVIAS_LINK, vip=TELEGRAM_VIP_LINK)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
