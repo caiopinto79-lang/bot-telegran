@@ -2,3 +2,4 @@ Flask
 mercadopago
 requests
 gunicorn
+pyTelegramBotAPI
