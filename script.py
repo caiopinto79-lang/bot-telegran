@@ -1,5 +1,6 @@
 import os
 import time
+import urllib.parse
 from flask import Flask, render_template_string, request, redirect, url_for, session
 
 app = Flask(__name__)
@@ -10,11 +11,11 @@ INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
 TIKTOK_LINK = "https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE"
 KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
-# Links diretos (substitua o das prévias e do Privacy quando tiver)
+# Links diretos
 TELEGRAM_PREVIAS_LINK = "#"
 PRIVACY_LINK = "#"
 
-# Número de WhatsApp para testes do Canal VIP (com DDD, sem símbolos)
+# Número de WhatsApp para testes (com DDD, sem símbolos)
 WHATSAPP_TESTE = "5518997734078"
 
 # Dicionário temporário para controle de bloqueio por IP
@@ -150,7 +151,7 @@ def bloquear_acesso():
     ip_blocklist[ip] = time.time() + 300 # 5 minutos de bloqueio
     return redirect(url_for('aviso_idade'))
 
-# --- ROTA: ACESSO AUTORIZADO (ÁREA RESTRITA) ---
+# --- ROTA: ÁREA RESTRITA ---
 @app.route("/acesso-autorizado")
 def acesso_autorizado():
     session['maior_idade'] = True
@@ -179,7 +180,7 @@ def acesso_autorizado():
     </html>
     """, css=CSS_RESPONSIVO, privacy=PRIVACY_LINK, previas=TELEGRAM_PREVIAS_LINK)
 
-# --- ROTA: FORMULÁRIO DE CADASTRO PARA O CANAL VIP ---
+# --- ROTA: FORMULÁRIO DE CADASTRO VIP ---
 @app.route("/cadastro-vip")
 def cadastro_vip():
     return render_template_string("""
@@ -194,9 +195,9 @@ def cadastro_vip():
     <body>
         <div class="container">
             <h2>👑 Cadastro Canal VIP</h2>
-            <p>Preencha seus dados abaixo para iniciar o atendimento e garantir seu acesso:</p>
+            <p>Preencha seus dados abaixo para registrar sua vaga no Canal VIP:</p>
             
-            <form action="/enviar-vip" method="POST">
+            <form action="/processar-vip" method="POST">
                 <div class="form-group">
                     <label>Seu Nome:</label>
                     <input type="text" name="nome" class="form-control" placeholder="Digite seu nome completo" required>
@@ -217,7 +218,7 @@ def cadastro_vip():
                     <input type="text" name="telegram" class="form-control" placeholder="Ex: @seuusuario" required>
                 </div>
 
-                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Ir para o Atendimento / Pix</button>
+                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Finalizar e Solicitar Acesso</button>
             </form>
 
             <a href="/acesso-autorizado" class="back-link">← Voltar para as opções</a>
@@ -226,23 +227,47 @@ def cadastro_vip():
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: PROCESSAR OS DADOS E ENCAMINHAR PARA O WHATSAPP ---
-@app.route("/enviar-vip", methods=["POST"])
-def enviar_vip():
+# --- ROTA: PROCESSAR O CADASTRO E MOSTRAR TELA DE SUCESSO (COM REDICIONAMENTO AUTOMÁTICO OPCIONAL OU AVISO) ---
+@app.route("/processar-vip", methods=["POST"])
+def processar_vip():
     nome = request.form.get("nome")
     email = request.form.get("email")
     whatsapp = request.form.get("whatsapp")
     telegram = request.form.get("telegram")
     
-    # Monta a mensagem formatada para enviar direto ao WhatsApp configurado
-    mensagem = f"Olá! Quero assinar o Canal VIP.\n\n*Meus Dados:*\n👤 Nome: {nome}\n📧 E-mail: {email}\n📱 WhatsApp: {whatsapp}\n✈️ Telegram: {telegram}"
-    
-    # Codifica a mensagem para link do WhatsApp
-    import urllib.parse
+    # Mensagem detalhada que vai para o WhatsApp dela/seu
+    mensagem = f"🚨 *NOVO CADASTRO VIP (SIMULAÇÃO)*\n\n👤 Nome: {nome}\n📧 E-mail: {email}\n📱 WhatsApp: {whatsapp}\n✈️ Telegram: {telegram}\n\n*Status:* Aguardando liberação (Prazo de até 24h)."
     mensagem_codificada = urllib.parse.quote(mensagem)
-    whatsapp_url = f"https://wa.me/{WHATSAPP_TESTE}?text={mensagem_codificada}"
     
-    return redirect(whatsapp_url)
+    # Link que dispara direto para o WhatsApp de atendimento
+    whatsapp_url = f"https://wa.me/{WHATSAPP_TESTE}?text={mensagem_codificada}"
+
+    # Renderiza a tela de sucesso informando o prazo de 24 horas e oferecendo o botão para concluir no WhatsApp
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Solicitação Enviada</title>
+        <style>{{ css|safe }}</style>
+    </head>
+    <body>
+        <div class="container">
+            <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
+            <h2 style="color: #00e676;">Solicitação Recebida!</h2>
+            <p style="margin-top: 15px;">Seus dados foram salvos com sucesso em nosso sistema.</p>
+            <p style="background: #18181b; padding: 12px; border-radius: 10px; border: 1px solid #27272a; font-size: 13px;">
+                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do atendimento.
+            </p>
+            
+            <a href="{{ wa_url }}" target="_blank" class="btn btn-vip" style="margin-top: 20px;">Abrir Atendimento no WhatsApp</a>
+            
+            <a href="/" class="back-link">Voltar para a Página Inicial</a>
+        </div>
+    </body>
+    </html>
+    """, css=CSS_RESPONSIVO, wa_url=whatsapp_url)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
