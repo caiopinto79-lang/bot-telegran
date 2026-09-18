@@ -1,9 +1,22 @@
 import os
 import time
+import requests
 from flask import Flask, render_template_string, request, redirect, url_for, session
+import mercadopago
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+
+# ================= CONFIGURAÇÕES =================
+# Credenciais oficiais do Mercado Pago
+ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
+sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
+
+# Credenciais oficiais do Bot do Telegram
+TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
+# Insira aqui o Chat ID de destino (pode ser o ID numérico do chat privado dela com o bot ou grupo de avisos)
+TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" 
+# =================================================
 
 # Links reais das redes sociais da Iasmin
 INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
@@ -26,6 +39,30 @@ def verificar_bloqueio():
         else:
             del ip_blocklist[ip]
     return 0
+
+def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
+    """Envia os dados do cadastro de forma privada para o bot/grupo da Iasmin"""
+    if TELEGRAM_CHAT_ID == "SEU_CHAT_ID_AQUI":
+        return # Evita erro caso o Chat ID não tenha sido configurado ainda
+    
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    mensagem = (
+        f"👑 *NOVO CADASTRO - CANAL VIP*\n\n"
+        f"👤 *Nome:* {nome}\n"
+        f"📧 *E-mail:* {email}\n"
+        f"📱 *WhatsApp (Segurança):* {whatsapp}\n"
+        f"💬 *Telegram:* {telegram_user}\n\n"
+        f"💳 *Status:* Pagamento de R$ 1,00 solicitado."
+    )
+    payload = {
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": mensagem,
+        "parse_mode": "Markdown"
+    }
+    try:
+        requests.post(url, json=payload, timeout=5)
+    except Exception as e:
+        print(f"Erro ao enviar notificação para o Telegram: {e}")
 
 # Estilo CSS Global Responsivo
 CSS_RESPONSIVO = """
@@ -61,14 +98,12 @@ CSS_RESPONSIVO = """
     .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
     .section-title { font-size: 13px; color: #a1a1aa; margin-bottom: 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     
-    /* Área de Navegação com Paginação e Início */
     .nav-footer { display: flex; gap: 8px; margin-top: 18px; width: 100%; }
     .nav-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #27272a; transition: background 0.2s; }
     .nav-inicio { background-color: #27272a; color: #fff; }
     .nav-inicio:hover { background-color: #3f3f46; border-color: #ff2a6d; }
-    .nav-pagina { background-color: #18181b; color: #a1a1aa; }
-    .nav-pagina.ativo { background-color: #ff2a6d; color: #fff; border-color: #ff2a6d; }
-    .nav-pagina:hover:not(.ativo) { background-color: #27272a; color: #fff; }
+    .nav-voltar { background-color: #18181b; color: #a1a1aa; }
+    .nav-voltar:hover { background-color: #27272a; color: #fff; border-color: #ff2a6d; }
 """
 
 # --- PÁGINA 1: VITRINE PRINCIPAL ---
@@ -102,7 +137,7 @@ def index():
 </html>
 """, css=CSS_RESPONSIVO, instagram=INSTAGRAM_LINK, tiktok=TIKTOK_LINK, kwai=KWAI_LINK)
 
-# --- PÁGINA 2: AVISO DE MAIORIDADE ---
+# --- TELA DE AVISO DE MAIORIDADE ---
 @app.route("/aviso-idade")
 def aviso_idade():
     minutos_bloqueio = verificar_bloqueio()
@@ -123,7 +158,7 @@ def aviso_idade():
                 <p>Tente novamente em aproximadamente <b>{{ min }} minuto(s)</b>.</p>
                 
                 <div class="nav-footer">
-                    <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
+                    <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Início</a>
                 </div>
             </div>
         </body>
@@ -148,8 +183,7 @@ def aviso_idade():
 
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
-                <span class="nav-btn nav-pagina ativo">Página 1</span>
-                <a href="/acesso-autorizado" class="nav-btn nav-pagina">Página 2 →</a>
+                <a href="/" class="nav-btn nav-voltar">← Voltar</a>
             </div>
         </div>
     </body>
@@ -159,7 +193,7 @@ def aviso_idade():
 @app.route("/bloquear-acesso")
 def bloquear_acesso():
     ip = request.remote_addr
-    ip_blocklist[ip] = time.time() + 300 # 5 minutos de bloqueio
+    ip_blocklist[ip] = time.time() + 300
     return redirect(url_for('aviso_idade'))
 
 # --- ROTA: ÁREA RESTRITA ---
@@ -183,12 +217,11 @@ def acesso_autorizado():
 
             <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
-            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (Cadastro)</a>
+            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (R$ 1,00)</a>
 
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
-                <a href="/aviso-idade" class="nav-btn nav-pagina">← Voltar</a>
-                <span class="nav-btn nav-pagina ativo">Página 2</span>
+                <a href="/aviso-idade" class="nav-btn nav-voltar">← Voltar</a>
             </div>
         </div>
     </body>
@@ -209,10 +242,10 @@ def cadastro_vip():
     </head>
     <body>
         <div class="container">
-            <h2>👑 Cadastro Canal VIP</h2>
-            <p>Preencha seus dados abaixo para registrar sua vaga no Canal VIP:</p>
+            <h2>👑 Canal VIP Telegram</h2>
+            <p>Preencha seus dados para gerar o pagamento de <b>R$ 1,00</b> e garantir sua vaga:</p>
             
-            <form action="/processar-vip" method="POST">
+            <form action="/criar-pagamento" method="POST">
                 <div class="form-group">
                     <label>Seu Nome:</label>
                     <input type="text" name="nome" class="form-control" placeholder="Digite seu nome completo" required>
@@ -224,7 +257,7 @@ def cadastro_vip():
                 </div>
 
                 <div class="form-group">
-                    <label>Seu WhatsApp (com DDD):</label>
+                    <label>Seu WhatsApp (Contato de Segurança):</label>
                     <input type="text" name="whatsapp" class="form-control" placeholder="Ex: 18999999999" required>
                 </div>
 
@@ -233,27 +266,62 @@ def cadastro_vip():
                     <input type="text" name="telegram" class="form-control" placeholder="Ex: @seuusuario" required>
                 </div>
 
-                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Finalizar Cadastro</button>
+                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Pagar R$ 1,00 e Finalizar</button>
             </form>
 
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
-                <a href="/acesso-autorizado" class="nav-btn nav-pagina">← Voltar</a>
-                <span class="nav-btn nav-pagina ativo">Página 3</span>
+                <a href="/acesso-autorizado" class="nav-btn nav-voltar">← Voltar</a>
             </div>
         </div>
     </body>
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: PROCESSAR O CADASTRO (TELA DE SUCESSO) ---
-@app.route("/processar-vip", methods=["POST"])
-def processar_vip():
+# --- ROTA: CRIAR PREFERÊNCIA NO MERCADO PAGO E NOTIFICAR BOT ---
+@app.route("/criar-pagamento", methods=["POST"])
+def criar_pagamento():
     nome = request.form.get("nome")
     email = request.form.get("email")
     whatsapp = request.form.get("whatsapp")
     telegram = request.form.get("telegram")
 
+    # Dispara a notificação silenciosa para o bot/grupo do Telegram dela
+    enviar_notificacao_telegram(nome, email, whatsapp, telegram)
+
+    # Cria a preferência de pagamento no Mercado Pago (R$ 1,00)
+    preference_data = {
+        "items": [
+            {
+                "title": "Acesso Canal VIP Telegram - Iasmin",
+                "quantity": 1,
+                "unit_price": 1.00,
+                "currency_id": "BRL"
+            }
+        ],
+        "payer": {
+            "name": nome,
+            "email": email
+        },
+        "back_urls": {
+            "success": "https://sua-url-do-render.onrender.com/sucesso",
+            "failure": "https://sua-url-do-render.onrender.com/cadastro-vip",
+            "pending": "https://sua-url-do-render.onrender.com/sucesso"
+        },
+        "auto_return": "approved"
+    }
+
+    try:
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+        init_point = preference["init_point"]
+        return redirect(init_point)
+    except Exception as e:
+        return f"Erro ao processar pagamento com o Mercado Pago: {e}"
+
+# --- ROTA: TELA DE SUCESSO ---
+@app.route("/sucesso")
+def sucesso():
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -267,13 +335,13 @@ def processar_vip():
         <div class="container">
             <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
             <h2 style="color: #00e676;">Tudo Pronto!</h2>
-            <p style="margin-top: 15px;">Seus dados foram cadastrados com sucesso no sistema.</p>
+            <p style="margin-top: 15px;">Seus dados e pagamento foram processados com sucesso.</p>
             <p style="background: #18181b; padding: 14px; border-radius: 10px; border: 1px solid #27272a; font-size: 13.5px; line-height: 1.6;">
-                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do pagamento. Fique de olho no seu <b>Telegram</b>!
+                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b>. Fique de olho no seu <b>Telegram</b>!
             </p>
             
             <div class="nav-footer">
-                <a href="/" class="nav-btn nav-inicio" style="flex: 2;">🏠 Voltar para a Página Inicial</a>
+                <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Voltar para a Página Inicial</a>
             </div>
         </div>
     </body>
