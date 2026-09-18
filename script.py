@@ -1,7 +1,7 @@
 import os
 import time
 import requests
-from flask import Flask, render_template_string, request, redirect, url_for, session
+from flask import Flask, render_template_string, request, redirect, url_for, session, jsonify
 import mercadopago
 
 app = Flask(__name__)
@@ -21,6 +21,8 @@ KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
 TELEGRAM_PREVIAS_LINK = "#"
 PRIVACY_LINK = "#"
+# Link do seu Bot ou do Canal VIP direto para onde o cliente vai ao pagar:
+LINK_DIRETO_BOT = "https://t.me/SEU_BOT_OU_CANAL_AQUI"
 
 ip_blocklist = {}
 
@@ -45,7 +47,7 @@ def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
         f"📧 *E-mail:* {email}\n"
         f"📱 *WhatsApp:* {whatsapp}\n"
         f"💬 *Telegram:* {telegram_user}\n\n"
-        f"💳 *Status:* Pix de R$ 1,00 gerado."
+        f"💳 *Status:* Pix de R$ 1,00 gerado (Aguardando pagamento)."
     )
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -264,7 +266,7 @@ def cadastro_vip():
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: GERAR PAGAMENTO PIX DIRETO NO MERCADO PAGO ---
+# --- ROTA: GERAR PAGAMENTO PIX ---
 @app.route("/criar-pagamento-pix", methods=["POST"])
 def criar_pagamento_pix():
     nome = request.form.get("nome")
@@ -272,10 +274,8 @@ def criar_pagamento_pix():
     whatsapp = request.form.get("whatsapp")
     telegram = request.form.get("telegram")
 
-    # Notifica o bot do Telegram com os dados do lead
     enviar_notificacao_telegram(nome, email, whatsapp, telegram)
 
-    # Dados para criar pagamento via Pix diretamente na API do Mercado Pago
     payment_data = {
         "transaction_amount": 1.00,
         "description": "Acesso Canal VIP Telegram - Iasmin",
@@ -285,7 +285,7 @@ def criar_pagamento_pix():
             "first_name": nome,
             "identification": {
                 "type": "CPF",
-                "number": "00000000000" # CPF genérico padrão para testes/simplificação se o cliente não digitar
+                "number": "00000000000"
             }
         }
     }
@@ -294,14 +294,13 @@ def criar_pagamento_pix():
         payment_response = sdk.payment().create(payment_data)
         payment = payment_response["response"]
         
-        # Extrai os dados do Pix gerado
+        payment_id = payment.get("id")
         point_of_interaction = payment.get("point_of_interaction", {})
         transaction_data = point_of_interaction.get("transaction_data", {})
         
         qr_code = transaction_data.get("qr_code", "Erro ao gerar código Pix")
         qr_code_base64 = transaction_data.get("qr_code_base64", "")
 
-        # Renderiza a página exclusiva com o QR Code e o botão Copia e Cola
         return render_template_string("""
         <!DOCTYPE html>
         <html lang="pt-BR">
@@ -312,9 +311,9 @@ def criar_pagamento_pix():
             <style>{{ css|safe }}</style>
         </head>
         <body>
-            <div class="container">
+            <div class="container" id="painel-pagamento">
                 <h2>⚡ Pix Gerado com Sucesso!</h2>
-                <p>Escaneie o QR Code abaixo ou copie o código Pix para pagar <b>R$ 1,00</b>:</p>
+                <p>Escaneie o QR Code ou copie o código abaixo para pagar <b>R$ 1,00</b>:</p>
                 
                 {% if qr_base64 %}
                 <div style="background: #fff; padding: 12px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
@@ -329,8 +328,8 @@ def criar_pagamento_pix():
 
                 <button type="button" class="btn btn-vip" onclick="copiarPix()">📋 Copiar Código Pix</button>
                 
-                <p style="font-size: 11.5px; color: #a1a1aa; margin-top: 15px;">
-                    Após o pagamento, o seu acesso ao Canal VIP será liberado no seu Telegram em breve.
+                <p style="font-size: 11.5px; color: #00e676; margin-top: 15px;" id="status-texto">
+                    ⏳ Aguardando confirmação do pagamento em tempo real...
                 </p>
 
                 <div class="nav-footer">
@@ -346,13 +345,52 @@ def criar_pagamento_pix():
                     navigator.clipboard.writeText(copyText.value);
                     alert("Código Pix copiado com sucesso!");
                 }
+
+                // Função automática que verifica se o Pix foi pago a cada 4 segundos
+                const paymentId = "{{ payment_id }}";
+                const linkBot = "{{ link_bot }}";
+
+                const verificarPagamento = setInterval(async () => {
+                    try {
+                        let response = await fetch(`/checar-status/${paymentId}`);
+                        let data = await response.json();
+
+                        if (data.status === "approved") {
+                            clearInterval(verificarPagamento);
+                            
+                            // Modifica a tela automaticamente assim que o pagamento é aprovado!
+                            document.getElementById("painel-pagamento").innerHTML = `
+                                <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
+                                <h2 style="color: #00e676;">Pagamento Aprovado!</h2>
+                                <p style="margin-top: 15px;">Seu pagamento de R$ 1,00 foi confirmado com sucesso.</p>
+                                <p style="font-size: 13.5px; color: #a1a1aa; margin-bottom: 20px;">Clique no botão abaixo para entrar imediatamente no seu destino:</p>
+                                <a href="${linkBot}" target="_blank" class="btn btn-vip">🚀 Acessar Canal VIP Agora</a>
+                                <div class="nav-footer" style="margin-top: 20px;">
+                                    <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Página Inicial</a>
+                                </div>
+                            `;
+                        }
+                    } catch (error) {
+                        console.error("Erro ao verificar status:", error);
+                    }
+                }, 4000); // Checa a cada 4 segundos
             </script>
         </body>
         </html>
-        """, css=CSS_RESPONSIVO, qr_code=qr_code, qr_base64=qr_code_base64)
+        """, css=CSS_RESPONSIVO, qr_code=qr_code, qr_base64=qr_code_base64, payment_id=payment_id, link_bot=LINK_DIRETO_BOT)
 
     except Exception as e:
         return f"Erro ao gerar o Pix via Mercado Pago: {e}"
+
+# --- ROTA PARA O JAVASCRIPT CONSULTAR O STATUS DO PIX ---
+@app.route("/checar-status/<payment_id>")
+def checar_status(payment_id):
+    try:
+        payment_info = sdk.payment().get(payment_id)
+        status = payment_info["response"].get("status")
+        return jsonify({"status": status})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
