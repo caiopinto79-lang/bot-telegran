@@ -71,7 +71,7 @@ CSS_RESPONSIVO = """
     .nav-pagina:hover:not(.ativo) { background-color: #27272a; color: #fff; }
 """
 
-# --- PÁGINA 1: VITRINE PRINCIPAL (Início) ---
+# --- PÁGINA 1: VITRINE PRINCIPAL ---
 @app.route("/")
 def index():
     return render_template_string("""
@@ -96,14 +96,7 @@ def index():
 
         <div class="divider"></div>
 
-        <div class="section-title">Conteúdos Exclusivos</div>
         <a href="/aviso-idade" class="btn btn-adult">🔥 Conteúdos +18 (Privacy & VIP)</a>
-
-        <!-- Paginação / Atalhos da Página Inicial -->
-        <div class="nav-footer">
-            <span class="nav-btn nav-pagina ativo">1</span>
-            <a href="/aviso-idade" class="nav-btn nav-pagina">2 →</a>
-        </div>
     </div>
 </body>
 </html>
@@ -153,11 +146,10 @@ def aviso_idade():
             <a href="/acesso-autorizado" class="btn">Sim, tenho 18 anos ou mais</a>
             <a href="/bloquear-acesso" class="btn btn-secundario">Não tenho</a>
 
-            <!-- Paginação e Início -->
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
-                <a href="/" class="nav-btn nav-pagina">← 1</a>
-                <span class="nav-btn nav-pagina ativo">2</span>
+                <span class="nav-btn nav-pagina ativo">Página 1</span>
+                <a href="/acesso-autorizado" class="nav-btn nav-pagina">Página 2 →</a>
             </div>
         </div>
     </body>
@@ -191,13 +183,12 @@ def acesso_autorizado():
 
             <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
-            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram</a>
+            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (Cadastro)</a>
 
-            <!-- Paginação e Início -->
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
                 <a href="/aviso-idade" class="nav-btn nav-pagina">← Voltar</a>
-                <span class="nav-btn nav-pagina ativo">3</span>
+                <span class="nav-btn nav-pagina ativo">Página 2</span>
             </div>
         </div>
     </body>
@@ -245,18 +236,17 @@ def cadastro_vip():
                 <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Finalizar Cadastro</button>
             </form>
 
-            <!-- Paginação e Início -->
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
                 <a href="/acesso-autorizado" class="nav-btn nav-pagina">← Voltar</a>
-                <span class="nav-btn nav-pagina ativo">4</span>
+                <span class="nav-btn nav-pagina ativo">Página 3</span>
             </div>
         </div>
     </body>
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: PROCESSAR O CADASTRO E MANTER O CLIENTE NO SITE (TELA DE SUCESSO) ---
+# --- ROTA: PROCESSAR O CADASTRO (TELA DE SUCESSO) ---
 @app.route("/processar-vip", methods=["POST"])
 def processar_vip():
     nome = request.form.get("nome")
@@ -279,10 +269,9 @@ def processar_vip():
             <h2 style="color: #00e676;">Tudo Pronto!</h2>
             <p style="margin-top: 15px;">Seus dados foram cadastrados com sucesso no sistema.</p>
             <p style="background: #18181b; padding: 14px; border-radius: 10px; border: 1px solid #27272a; font-size: 13.5px; line-height: 1.6;">
-                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do pagamento. Fique de olho no seu WhatsApp e Telegram!
+                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do pagamento. Fique de olho no seu <b>Telegram</b>!
             </p>
             
-            <!-- Paginação e Início -->
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio" style="flex: 2;">🏠 Voltar para a Página Inicial</a>
             </div>
