@@ -14,15 +14,15 @@ ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0
 sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
 
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Seu chat ID pessoal para receber avisos (opcional)
+TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Seu chat ID pessoal para receber avisos de novos cadastros (opcional)
 
-# ID do seu Canal VIP (Ex: -100xxxxxxxxxx). O bot precisa ser ADM desse canal!
-TELEGRAM_CHANNEL_ID = "-100SEU_ID_DO_CANAL_AQUI" 
+# ID do seu Grupo VIP (Ex: -100xxxxxxxxxx). O bot precisa ser ADM com permissão de convidar via link!
+TELEGRAM_CHANNEL_ID = "-100SEU_ID_DO_GRUPO_AQUI" 
 
 # Inicializa o Bot do Telegram
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Link direto atualizado com o seu bot correto (@QuickBookrosaBot)
+# Link direto atualizado com o seu bot correto
 LINK_DIRETO_BOT = "https://t.me/QuickBookrosaBot?text=Quero%20meu%20acesso%20ao%20Canal%20VIP"
 # =================================================
 
@@ -51,7 +51,7 @@ def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     mensagem = (
-        f"👑 *NOVO CADASTRO - CANAL VIP*\n\n"
+        f"👑 *NOVO CADASTRO - GRUPO VIP*\n\n"
         f"👤 *Nome:* {nome}\n"
         f"📧 *E-mail:* {email}\n"
         f"📱 *WhatsApp:* {whatsapp}\n"
@@ -68,30 +68,32 @@ def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
     except Exception as e:
         print(f"Erro ao enviar notificação para o Telegram: {e}")
 
-# ================= LÓGICA DO BOT DO TELEGRAM (GERAR LINK AUTOMÁTICO) =================
-@bot.message_handler(func=lambda message: "Quero meu acesso ao Canal VIP" in message.text)
+# ================= LÓGICA DO BOT DO TELEGRAM (GRUPO VIP) =================
+@bot.message_handler(func=lambda message: "Quero meu acesso ao Canal VIP" in message.text or "acesso" in message.text.lower())
 def lidar_com_pedido_vip(message):
     chat_id = message.chat.id
-    bot.send_message(chat_id, "⏳ Gerando seu acesso exclusivo ao Canal VIP...")
+    bot.send_message(chat_id, "⏳ Gerando seu acesso exclusivo ao Grupo VIP...")
 
     try:
-        invite_link = bot.create_chat_invite_link(
-            chat_id=TELEGRAM_CHANNEL_ID,
-            member_limit=1
-        )
-        link_convite = invite_link.invite_link
+        # Puxa o link de convite oficial do grupo/supergrupo
+        invite_link = bot.export_chat_invite_link(chat_id=TELEGRAM_CHANNEL_ID)
         
         resposta = (
             f"🎉 **Acesso Liberado com Sucesso!**\n\n"
-            f"Muito obrigado pelo apoio! Aqui está o seu link de convite exclusivo para o Canal VIP:\n\n"
-            f"👉 {link_convite}\n\n"
-            f"⚠️ *Atenção:* Este link é único e possui limite de uso. Não compartilhe com outras pessoas!"
+            f"Muito obrigado pelo apoio! Aqui está o seu link de convite exclusivo para o Grupo VIP:\n\n"
+            f"👉 {invite_link}\n\n"
+            f"⚠️ *Atenção:* Este link é o acesso oficial ao grupo. Não compartilhe com outras pessoas!"
         )
         bot.send_message(chat_id, resposta, parse_mode="Markdown")
+        print(f"Link do grupo enviado com sucesso para o chat ID: {chat_id}")
         
     except Exception as e:
-        print(f"Erro ao gerar link do canal: {e}")
-        bot.send_message(chat_id, "❌ Houve um erro ao gerar seu acesso automático. Por favor, envie o comprovante para o suporte.")
+        print(f"ERRO DETALHADO AO GERAR LINK DO GRUPO: {str(e)}")
+        bot.send_message(
+            chat_id, 
+            "❌ Houve um pequeno erro técnico ao buscar o link automático. "
+            "Por favor, envie o comprovante para o suporte para liberação manual."
+        )
 
 def rodar_bot_telegram():
     print("🤖 Bot do Telegram rodando em segundo plano...")
@@ -232,7 +234,7 @@ def acesso_autorizado():
             <div class="bio">Escolha abaixo onde deseja acessar os conteúdos da Iasmin:</div>
             <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
-            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (Pix R$ 1,00)</a>
+            <a href="/cadastro-vip" class="btn btn-vip">👑 Grupo VIP Telegram (Pix R$ 1,00)</a>
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
                 <a href="/aviso-idade" class="nav-btn nav-voltar">← Voltar</a>
@@ -250,12 +252,12 @@ def cadastro_vip():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cadastro - Canal VIP</title>
+        <title>Cadastro - Grupo VIP</title>
         <style>{{ css|safe }}</style>
     </head>
     <body>
         <div class="container">
-            <h2>👑 Canal VIP Telegram</h2>
+            <h2>👑 Grupo VIP Telegram</h2>
             <p>Preencha seus dados para gerar o Pix instantâneo de <b>R$ 1,00</b>:</p>
             <form action="/criar-pagamento-pix" method="POST">
                 <div class="form-group">
@@ -296,7 +298,7 @@ def criar_pagamento_pix():
 
     payment_data = {
         "transaction_amount": 1.00,
-        "description": "Acesso Canal VIP Telegram - Iasmin",
+        "description": "Acesso Grupo VIP Telegram - Iasmin",
         "payment_method_id": "pix",
         "payer": {
             "email": email,
@@ -325,7 +327,7 @@ def criar_pagamento_pix():
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Pagamento Pix - Canal VIP</title>
+            <title>Pagamento Pix - Grupo VIP</title>
             <style>{{ css|safe }}</style>
         </head>
         <body>
