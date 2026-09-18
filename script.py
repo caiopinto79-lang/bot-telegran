@@ -8,14 +8,14 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "SEU_ACCESS_TOKEN_DO_MERCADO_PAGO")
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# Mini site com a estrutura organizada por blocos (Redes, Conteúdo +18 e Canal VIP com Pix)
+# Mini site com navegação baseada em telas (views separadas)
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Exclusivo - Links & Acessos VIP</title>
+    <title>Painel Exclusivo - Links & Acessos</title>
     <style>
         :root {
             --bg-color: #0f172a;
@@ -71,15 +71,17 @@ HTML_INDEX = """
         .link-button {
             display: block;
             width: 100%;
-            padding: 12px;
-            margin-bottom: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
             border-radius: 8px;
             color: white;
             text-decoration: none;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 15px;
             box-sizing: border-box;
             transition: opacity 0.3s, transform 0.2s;
+            cursor: pointer;
+            border: none;
         }
         .link-button:hover {
             opacity: 0.9;
@@ -88,45 +90,29 @@ HTML_INDEX = """
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .btn-tiktok { background-color: #010101; border: 1px solid #333; }
         .btn-kwai { background-color: #ff5722; }
+        .btn-adult-main { background-color: var(--accent); font-size: 16px; margin-top: 15px; }
         
-        /* Bloco Conteúdo +18 */
-        .box-adult {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid #334155;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            text-align: left;
-        }
-        .box-adult h3 {
-            font-size: 14px;
-            color: var(--accent);
-            margin: 0 0 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-align: center;
-        }
         .btn-preview { background-color: #229ED9; }
         .btn-privacy { background-color: #00aff0; }
+        .btn-vip { background-color: #10b981; }
+        .btn-voltar { background-color: #475569; font-size: 13px; padding: 10px; margin-top: 15px; }
 
-        /* Bloco Canal VIP Telegram com Pagamento */
+        /* Controle de telas (esconde/mostra) */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        /* Estilo da tela VIP (Pagamento) */
         .vip-box {
             background: rgba(244, 63, 94, 0.08);
             border: 1px dashed var(--accent);
             border-radius: 10px;
             padding: 15px;
-            margin-top: 20px;
-        }
-        .vip-box h3 {
-            font-size: 15px;
-            color: var(--text-main);
-            margin: 0 0 5px 0;
-        }
-        .vip-price {
-            font-size: 18px;
-            color: var(--success);
-            font-weight: bold;
-            margin-bottom: 12px;
+            margin-top: 10px;
+            text-align: left;
         }
         input {
             width: 100%;
@@ -173,44 +159,76 @@ HTML_INDEX = """
 </head>
 <body>
     <div class="container">
-        <h1>Painel Exclusivo</h1>
-        <p class="subtitle">Acesse minhas redes e conteúdos abaixo</p>
+        
+        <!-- TELA 1: Redes Sociais e Botão Principal +18 -->
+        <div id="tela-principal" class="screen active">
+            <h1>Painel Exclusivo</h1>
+            <p class="subtitle">Acesse minhas redes abaixo</p>
 
-        <!-- Redes Sociais -->
-        <div class="section-title">Redes Sociais</div>
-        <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
-        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
-        <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
+            <div class="section-title">Redes Sociais</div>
+            <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
+            <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
+            <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
 
-        <!-- Bloco de Conteúdo +18 -->
-        <div class="box-adult">
-            <h3>🔥 Conteúdo +18</h3>
+            <button class="link-button btn-adult-main" onclick="verificarIdade()">🔥 CONTEÚDO +18</button>
+        </div>
+
+        <!-- TELA 2: Conteúdos Exclusivos (Prévias, Privacy e VIP) -->
+        <div id="tela-conteudos" class="screen">
+            <h1>Conteúdos Exclusivos</h1>
+            <p class="subtitle">Área restrita para maiores de idade</p>
+
             <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis)</a>
             <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataformas</a>
+            <button class="link-button btn-vip" onclick="mudarTela('tela-vip')">🚀 Canal VIP Telegram (R$ 29,90)</button>
+
+            <button class="link-button btn-voltar" onclick="mudarTela('tela-principal')">⬅ Voltar ao Início</button>
         </div>
 
-        <!-- Bloco Canal VIP Telegram com Pagamento -->
-        <div class="vip-box">
-            <h3>🚀 Canal VIP Telegram</h3>
-            <div class="vip-price">R$ 29,90</div>
-            
-            <div id="form-pagamento">
-                <input type="text" id="nome" placeholder="Seu Nome Completo" required>
-                <input type="email" id="email" placeholder="Seu E-mail" required>
-                <button class="action-btn" onclick="gerarPix()">Liberar Acesso VIP (Gerar Pix)</button>
+        <!-- TELA 3: Pagamento do Canal VIP -->
+        <div id="tela-vip" class="screen">
+            <h1>Canal VIP Telegram</h1>
+            <p class="subtitle">Liberação automática após o pagamento</p>
+
+            <div class="vip-box">
+                <div id="form-pagamento">
+                    <input type="text" id="nome" placeholder="Seu Nome Completo" required>
+                    <input type="email" id="email" placeholder="Seu E-mail" required>
+                    <button class="action-btn" onclick="gerarPix()">Gerar Pix (R$ 29,90)</button>
+                </div>
+
+                <div id="resultado-pix">
+                    <p style="color: var(--success); font-weight: bold; font-size: 12px; margin-bottom: 4px;">Pix Gerado com Sucesso!</p>
+                    <textarea id="copia-cola" readonly></textarea>
+                    <button onclick="copiarPix()" class="action-btn" style="background-color: #10b981; padding: 10px; font-size: 13px; margin-bottom: 8px;">Copiar Código Pix</button>
+                    
+                    <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Redirecionamento ao bot será conectado aqui -->
+                </div>
             </div>
 
-            <div id="resultado-pix">
-                <p style="color: var(--success); font-weight: bold; font-size: 12px; margin-bottom: 4px;">Pix Gerado com Sucesso!</p>
-                <textarea id="copia-cola" readonly></textarea>
-                <button onclick="copiarPix()" class="action-btn" style="background-color: #10b981; padding: 10px; font-size: 13px;">Copiar Código Pix</button>
-                
-                <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Linha reservada para direcionar ao bot após confirmação -->
-            </div>
+            <button class="link-button btn-voltar" onclick="mudarTela('tela-conteudos')">⬅ Voltar aos Conteúdos</button>
         </div>
+
     </div>
 
     <script>
+        // Função de verificação de idade com alerta de ciência
+        function verificarIdade() {
+            const maior = confirm("Atenção: Este site contém material adulto (+18).\n\nVocê confirma que tem 18 anos ou mais e deseja continuar?");
+            if (maior) {
+                mudarTela('tela-conteudos');
+            }
+        }
+
+        // Função para alternar entre as telas de forma fluida
+        function mudarTela(idTela) {
+            document.querySelectorAll('.screen').forEach(tela => {
+                tela.classList.remove('active');
+            });
+            document.getElementById(idTela).classList.add('active');
+            window.scrollTo(0, 0);
+        }
+
         async function gerarPix() {
             const nome = document.getElementById('nome').value;
             const email = document.getElementById('email').value;
@@ -238,12 +256,12 @@ HTML_INDEX = """
                     document.getElementById('resultado-pix').style.display = 'block';
                 } else {
                     alert('Erro ao gerar pagamento: ' + data.detalhes);
-                    btn.innerText = "Liberar Acesso VIP (Gerar Pix)";
+                    btn.innerText = "Gerar Pix (R$ 29,90)";
                     btn.disabled = false;
                 }
             } catch (error) {
                 alert('Erro de conexão. Tente novamente.');
-                btn.innerText = "Liberar Acesso VIP (Gerar Pix)";
+                btn.innerText = "Gerar Pix (R$ 29,90)";
                 btn.disabled = false;
             }
         }
@@ -331,10 +349,10 @@ def webhook_pagamento():
             
             if payment_status == "approved":
                 payer_email = payment_info["response"].get("payer", {}).get("email")
-                # [PONTO DE ADAPTAÇÃO FUTURA DO BOT] O gatilho que avisa o bot para liberar o acesso será conectado aqui
+                # [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Gatilho de notificação para o bot
                 print(f"[GATILHO] Pagamento aprovado! ID: {payment_id} | Email: {payer_email}")
 
-        return jsonify({"status": "recebido"}), 200
+        return jsonify({"status":500 if False else "recebido"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "detalhes": str(e)}), 500
 
