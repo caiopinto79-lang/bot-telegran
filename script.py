@@ -10,10 +10,12 @@ INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
 TIKTOK_LINK = "https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE"
 KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
-# Links das plataformas +18
-PRIVACY_LINK = "#"
+# Links diretos (substitua o das prévias e do Privacy quando tiver)
 TELEGRAM_PREVIAS_LINK = "#"
-TELEGRAM_VIP_LINK = "#"
+PRIVACY_LINK = "#"
+
+# Número de WhatsApp para testes do Canal VIP (com DDD, sem símbolos)
+WHATSAPP_TESTE = "5518997734078"
 
 # Dicionário temporário para controle de bloqueio por IP
 ip_blocklist = {}
@@ -28,7 +30,7 @@ def verificar_bloqueio():
             del ip_blocklist[ip]
     return 0
 
-# Estilo CSS Global Responsivo para todas as páginas
+# Estilo CSS Global Responsivo
 CSS_RESPONSIVO = """
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
@@ -51,7 +53,14 @@ CSS_RESPONSIVO = """
     .btn-privacy { background-color: #00aff0; box-shadow: 0 4px 15px rgba(0,175,240,0.3); }
     .btn-telegram { background-color: #229ed9; box-shadow: 0 4px 15px rgba(34,158,217,0.3); }
     .btn-vip { background-color: #00e676; color: #000; box-shadow: 0 4px 15px rgba(0,230,118,0.3); }
-    
+    .btn-vip:hover { background-color: #00c853; }
+
+    /* Estilos para o Formulário */
+    .form-group { margin-bottom: 15px; text-align: left; }
+    .form-group label { display: block; font-size: 12.5px; color: #a1a1aa; margin-bottom: 5px; font-weight: 600; }
+    .form-control { width: 100%; padding: 12px; border-radius: 10px; background-color: #18181b; border: 1px solid #27272a; color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s; }
+    .form-control:focus { border-color: #00e676; }
+
     .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
     .section-title { font-size: 13px; color: #a1a1aa; margin-bottom: 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .back-link { display: inline-block; margin-top: 15px; font-size: 13px; color: #a1a1aa; text-decoration: none; }
@@ -141,7 +150,7 @@ def bloquear_acesso():
     ip_blocklist[ip] = time.time() + 300 # 5 minutos de bloqueio
     return redirect(url_for('aviso_idade'))
 
-# --- ROTA: ACESSO AUTORIZADO ---
+# --- ROTA: ACESSO AUTORIZADO (ÁREA RESTRITA) ---
 @app.route("/acesso-autorizado")
 def acesso_autorizado():
     session['maior_idade'] = True
@@ -162,13 +171,78 @@ def acesso_autorizado():
 
             <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
-            <a href="{{ vip }}" target="_blank" class="btn btn-vip">👑 Canal VIP Telegram</a>
+            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram</a>
 
             <a href="/" class="back-link">← Voltar para a página inicial</a>
         </div>
     </body>
     </html>
-    """, css=CSS_RESPONSIVO, privacy=PRIVACY_LINK, previas=TELEGRAM_PREVIAS_LINK, vip=TELEGRAM_VIP_LINK)
+    """, css=CSS_RESPONSIVO, privacy=PRIVACY_LINK, previas=TELEGRAM_PREVIAS_LINK)
+
+# --- ROTA: FORMULÁRIO DE CADASTRO PARA O CANAL VIP ---
+@app.route("/cadastro-vip")
+def cadastro_vip():
+    return render_template_string("""
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cadastro - Canal VIP</title>
+        <style>{{ css|safe }}</style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>👑 Cadastro Canal VIP</h2>
+            <p>Preencha seus dados abaixo para iniciar o atendimento e garantir seu acesso:</p>
+            
+            <form action="/enviar-vip" method="POST">
+                <div class="form-group">
+                    <label>Seu Nome:</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Digite seu nome completo" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Seu E-mail:</label>
+                    <input type="email" name="email" class="form-control" placeholder="seu@email.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Seu WhatsApp (com DDD):</label>
+                    <input type="text" name="whatsapp" class="form-control" placeholder="Ex: 18999999999" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Seu @ do Telegram:</label>
+                    <input type="text" name="telegram" class="form-control" placeholder="Ex: @seuusuario" required>
+                </div>
+
+                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Ir para o Atendimento / Pix</button>
+            </form>
+
+            <a href="/acesso-autorizado" class="back-link">← Voltar para as opções</a>
+        </div>
+    </body>
+    </html>
+    """, css=CSS_RESPONSIVO)
+
+# --- ROTA: PROCESSAR OS DADOS E ENCAMINHAR PARA O WHATSAPP ---
+@app.route("/enviar-vip", methods=["POST"])
+def enviar_vip():
+    nome = request.form.get("nome")
+    email = request.form.get("email")
+    whatsapp = request.form.get("whatsapp")
+    telegram = request.form.get("telegram")
+    
+    # Monta a mensagem formatada para enviar direto ao WhatsApp configurado
+    mensagem = f"Olá! Quero assinar o Canal VIP.\n\n*Meus Dados:*\n👤 Nome: {nome}\n📧 E-mail: {email}\n📱 WhatsApp: {whatsapp}\n✈️ Telegram: {telegram}"
+    
+    # Codifica a mensagem para link do WhatsApp
+    import urllib.parse
+    mensagem_codificada = urllib.parse.quote(mensagem)
+    whatsapp_url = f"https://wa.me/{WHATSAPP_TESTE}?text={mensagem_codificada}"
+    
+    return redirect(whatsapp_url)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
