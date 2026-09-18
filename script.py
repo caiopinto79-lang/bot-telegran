@@ -8,7 +8,7 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "SEU_ACCESS_TOKEN_DO_MERCADO_PAGO")
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# PÁGINA 1: Início (Redes Sociais + Botão +18 com Alerta de Maioridade funcional corrigido)
+# PÁGINA 1: Início (Redes Sociais + Botão +18 ajustado para abrir em nova aba)
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -101,25 +101,28 @@ HTML_INDEX = """
         <div class="section-title">Redes Sociais</div>
         <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
         <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
-        <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
+        <!-- Substitua o link abaixo pelo link real do perfil do Kwai da sua amiga -->
+        <a href="https://s.kwai.app/s/LINK_DO_KWAI_DA_SUA_AMIGA" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
 
-        <!-- Botão corrigido usando elemento <button> nativo para garantir clique e funcionamento -->
-        <button type="button" class="link-button btn-adult-main" onclick="verificarIdade()">🔥 CONTEÚDO +18</button>
+        <!-- Botão ajustado para abrir a página de conteúdos em uma nova aba perfeitamente -->
+        <a href="/conteudos" target="_blank" onclick="return confirmarIdade(event)" class="link-button btn-adult-main">🔥 CONTEÚDO +18</a>
     </div>
 
     <script>
-        function verificarIdade() {
-            const maior = confirm("Atenção: Este site contém material adulto (+18).\n\nVocê confirma que tem 18 anos ou mais e deseja continuar?");
-            if (maior) {
-                window.location.href = "/conteudos";
+        function confirmarIdade(event) {
+            const maior = confirm("Atenção: Este site contém material adulto (+18).\n\nVocê confirma que tem 18 anos ou mais?");
+            if (!maior) {
+                event.preventDefault(); // Cancela a abertura se disser que não
+                return false;
             }
+            return true; // Prossegue e abre em uma nova aba
         }
     </script>
 </body>
 </html>
 """
 
-# PÁGINA 2: Conteúdos Exclusivos (Sequência: Privacy, Prévias, VIP)
+# PÁGINA 2: Conteúdos Exclusivos
 HTML_CONTEUDOS = """
 <!DOCTYPE html>
 <html lang="pt-BR">
