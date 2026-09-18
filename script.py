@@ -224,7 +224,7 @@ HTML_CONTEUDOS = """
         <p class="subtitle">Escolha uma das opções abaixo</p>
 
         <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataforma Principal</a>
-        <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis no Telegram)</a>
+        <a href="https://t.me/+A_pQQ1vDeY9kY2Yx" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis no Telegram)</a>
         <a href="/checkout-vip" class="link-button btn-vip">🚀 Canal VIP Telegram (Acesso Direto - R$ 29,90)</a>
 
         <a href="/" class="link-button btn-voltar">⬅ Voltar à Página Inicial</a>
