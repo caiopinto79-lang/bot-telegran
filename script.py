@@ -8,7 +8,7 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "SEU_ACCESS_TOKEN_DO_MERCADO_PAGO")
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# PÁGINA 1: Início (Redes Sociais + Botão +18 com Alerta de Maioridade funcional)
+# PÁGINA 1: Início (Redes Sociais + Botão +18 com Alerta de Maioridade funcional corrigido)
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -81,6 +81,7 @@ HTML_INDEX = """
             transition: opacity 0.3s, transform 0.2s;
             cursor: pointer;
             border: none;
+            text-align: center;
         }
         .link-button:hover {
             opacity: 0.9;
@@ -89,7 +90,7 @@ HTML_INDEX = """
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .btn-tiktok { background-color: #010101; border: 1px solid #333; }
         .btn-kwai { background-color: #ff5722; }
-        .btn-adult-main { background-color: var(--accent); font-size: 16px; margin-top: 15px; }
+        .btn-adult-main { background-color: var(--accent); font-size: 16px; margin-top: 15px; width: 100%; }
     </style>
 </head>
 <body>
@@ -102,12 +103,12 @@ HTML_INDEX = """
         <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
         <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
 
-        <a href="#" onclick="verificarIdade(event)" class="link-button btn-adult-main">🔥 CONTEÚDO +18</a>
+        <!-- Botão corrigido usando elemento <button> nativo para garantir clique e funcionamento -->
+        <button type="button" class="link-button btn-adult-main" onclick="verificarIdade()">🔥 CONTEÚDO +18</button>
     </div>
 
     <script>
-        function verificarIdade(event) {
-            event.preventDefault();
+        function verificarIdade() {
             const maior = confirm("Atenção: Este site contém material adulto (+18).\n\nVocê confirma que tem 18 anos ou mais e deseja continuar?");
             if (maior) {
                 window.location.href = "/conteudos";
