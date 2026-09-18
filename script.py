@@ -14,7 +14,7 @@ ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0
 sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
 
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Seu chat ID pessoal para receber avisos de novos cadastros (opcional)
+TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Seu chat ID pessoal opcional para avisos de novos cadastros
 
 # ID do seu Grupo VIP (Ex: -100xxxxxxxxxx). O bot precisa ser ADM com permissão de convidar via link!
 TELEGRAM_CHANNEL_ID = "-100SEU_ID_DO_GRUPO_AQUI" 
@@ -22,7 +22,7 @@ TELEGRAM_CHANNEL_ID = "-100SEU_ID_DO_GRUPO_AQUI"
 # Inicializa o Bot do Telegram
 bot = telebot.TeleBot(TELEGRAM_BOT_TOKEN)
 
-# Link direto atualizado com o seu bot correto
+# Link direto com o seu bot correto
 LINK_DIRETO_BOT = "https://t.me/QuickBookrosaBot?text=Quero%20meu%20acesso%20ao%20Canal%20VIP"
 # =================================================
 
@@ -69,35 +69,53 @@ def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
         print(f"Erro ao enviar notificação para o Telegram: {e}")
 
 # ================= LÓGICA DO BOT DO TELEGRAM (GRUPO VIP) =================
-@bot.message_handler(func=lambda message: "Quero meu acesso ao Canal VIP" in message.text or "acesso" in message.text.lower())
-def lidar_com_pedido_vip(message):
+@bot.message_handler(func=lambda message: True)
+def responder_mensagens(message):
+    texto = message.text.lower()
     chat_id = message.chat.id
-    bot.send_message(chat_id, "⏳ Gerando seu acesso exclusivo ao Grupo VIP...")
+    
+    # Se o usuário mandar /start ou clicar no link com o texto padrão
+    if "/start" in texto:
+        bot.reply_to(
+            message, 
+            "Olá! Seja bem-vindo(a) ao atendimento automatizado da Iasmin.\n\n"
+            "Assim que o seu pagamento for aprovado no site, clique no botão de liberação para receber seu link de acesso exclusivo ao Grupo VIP!"
+        )
+        return
 
-    try:
-        # Puxa o link de convite oficial do grupo/supergrupo
-        invite_link = bot.export_chat_invite_link(chat_id=TELEGRAM_CHANNEL_ID)
-        
-        resposta = (
-            f"🎉 **Acesso Liberado com Sucesso!**\n\n"
-            f"Muito obrigado pelo apoio! Aqui está o seu link de convite exclusivo para o Grupo VIP:\n\n"
-            f"👉 {invite_link}\n\n"
-            f"⚠️ *Atenção:* Este link é o acesso oficial ao grupo. Não compartilhe com outras pessoas!"
-        )
-        bot.send_message(chat_id, resposta, parse_mode="Markdown")
-        print(f"Link do grupo enviado com sucesso para o chat ID: {chat_id}")
-        
-    except Exception as e:
-        print(f"ERRO DETALHADO AO GERAR LINK DO GRUPO: {str(e)}")
-        bot.send_message(
-            chat_id, 
-            "❌ Houve um pequeno erro técnico ao buscar o link automático. "
-            "Por favor, envie o comprovante para o suporte para liberação manual."
-        )
+    if "quero" in texto or "acesso" in texto or "vip" in texto:
+        bot.send_message(chat_id, "⏳ A processar o seu acesso exclusivo ao Grupo VIP...")
+
+        try:
+            # Puxa o link de convite oficial do grupo/supergrupo
+            invite_link = bot.export_chat_invite_link(chat_id=TELEGRAM_CHANNEL_ID)
+            
+            resposta = (
+                f"🎉 **Acesso Liberado com Sucesso!**\n\n"
+                f"Muito obrigado pelo apoio! Aqui está o seu link de convite exclusivo para o Grupo VIP:\n\n"
+                f"👉 {invite_link}\n\n"
+                f"⚠️ *Atenção:* Este link é oficial e pessoal. Não compartilhe com outras pessoas!"
+            )
+            bot.send_message(chat_id, resposta, parse_mode="Markdown")
+            print(f"✅ Link do grupo enviado com sucesso para o chat ID: {chat_id}")
+            
+        except Exception as e:
+            erro_msg = str(e)
+            print(f"❌ ERRO DETALHADO AO GERAR LINK DO GRUPO: {erro_msg}")
+            bot.send_message(
+                chat_id, 
+                "❌ O bot encontrou uma restrição ao buscar o link automático. "
+                "Certifique-se de que o bot é Administrador do grupo com permissão para 'Convidar usuários via link'."
+            )
 
 def rodar_bot_telegram():
-    print("🤖 Bot do Telegram rodando em segundo plano...")
-    bot.infinity_polling(skip_pending=True)
+    print("🤖 Bot do Telegram iniciado e a escutar mensagens...")
+    while True:
+        try:
+            bot.infinity_polling(skip_pending=True, timeout=60, long_polling_timeout=60)
+        except Exception as e:
+            print(f"⚠️ Aviso: Bot reiniciou devido a desconexão temporária: {e}")
+            time.sleep(5)
 # ===================================================================================
 
 CSS_RESPONSIVO = """
@@ -410,9 +428,12 @@ def checar_status(payment_id):
         return jsonify({"status": "error", "message": str(e)})
 
 if __name__ == "__main__":
-    # Inicia o bot do Telegram em segundo plano junto com o site Flask
+    print("🚀 A iniciar servidor web Flask...")
+    
+    # Inicia o bot do Telegram em segundo plano de forma segura
     t_bot = threading.Thread(target=rodar_bot_telegram, daemon=True)
     t_bot.start()
+    print("✅ Thread do bot do Telegram iniciada com sucesso!")
 
     # Roda o site Flask
     port = int(os.environ.get("PORT", 5000))
