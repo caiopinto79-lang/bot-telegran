@@ -12,7 +12,10 @@ ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0
 sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
 
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" 
+TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Coloque o seu Chat ID numérico do Telegram aqui para receber os avisos
+
+# Substitua 'NomeDoSeuBot' pelo username real do seu bot do Telegram (sem o @)
+LINK_DIRETO_BOT = "https://t.me/NomeDoSeuBot?text=Quero%20meu%20acesso%20ao%20Canal%20VIP"
 # =================================================
 
 INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
@@ -21,8 +24,6 @@ KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
 TELEGRAM_PREVIAS_LINK = "#"
 PRIVACY_LINK = "#"
-# Link do seu Bot ou do Canal VIP direto para onde o cliente vai ao pagar:
-LINK_DIRETO_BOT = "https://t.me/SEU_BOT_OU_CANAL_AQUI"
 
 ip_blocklist = {}
 
@@ -266,7 +267,6 @@ def cadastro_vip():
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: GERAR PAGAMENTO PIX ---
 @app.route("/criar-pagamento-pix", methods=["POST"])
 def criar_pagamento_pix():
     nome = request.form.get("nome")
@@ -346,7 +346,6 @@ def criar_pagamento_pix():
                     alert("Código Pix copiado com sucesso!");
                 }
 
-                // Função automática que verifica se o Pix foi pago a cada 4 segundos
                 const paymentId = "{{ payment_id }}";
                 const linkBot = "{{ link_bot }}";
 
@@ -358,13 +357,12 @@ def criar_pagamento_pix():
                         if (data.status === "approved") {
                             clearInterval(verificarPagamento);
                             
-                            // Modifica a tela automaticamente assim que o pagamento é aprovado!
                             document.getElementById("painel-pagamento").innerHTML = `
                                 <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
                                 <h2 style="color: #00e676;">Pagamento Aprovado!</h2>
                                 <p style="margin-top: 15px;">Seu pagamento de R$ 1,00 foi confirmado com sucesso.</p>
-                                <p style="font-size: 13.5px; color: #a1a1aa; margin-bottom: 20px;">Clique no botão abaixo para entrar imediatamente no seu destino:</p>
-                                <a href="${linkBot}" target="_blank" class="btn btn-vip">🚀 Acessar Canal VIP Agora</a>
+                                <p style="font-size: 13.5px; color: #a1a1aa; margin-bottom: 20px;">Clique no botão abaixo para abrir o bot no Telegram e enviar a confirmação:</p>
+                                <a href="${linkBot}" target="_blank" class="btn btn-telegram">💬 Falar com o Bot no Telegram</a>
                                 <div class="nav-footer" style="margin-top: 20px;">
                                     <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Página Inicial</a>
                                 </div>
@@ -373,7 +371,7 @@ def criar_pagamento_pix():
                     } catch (error) {
                         console.error("Erro ao verificar status:", error);
                     }
-                }, 4000); // Checa a cada 4 segundos
+                }, 4000);
             </script>
         </body>
         </html>
@@ -382,7 +380,6 @@ def criar_pagamento_pix():
     except Exception as e:
         return f"Erro ao gerar o Pix via Mercado Pago: {e}"
 
-# --- ROTA PARA O JAVASCRIPT CONSULTAR O STATUS DO PIX ---
 @app.route("/checar-status/<payment_id>")
 def checar_status(payment_id):
     try:
