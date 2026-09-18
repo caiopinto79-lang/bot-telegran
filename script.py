@@ -1,6 +1,5 @@
 import os
 import time
-import urllib.parse
 from flask import Flask, render_template_string, request, redirect, url_for, session
 
 app = Flask(__name__)
@@ -14,9 +13,6 @@ KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 # Links diretos
 TELEGRAM_PREVIAS_LINK = "#"
 PRIVACY_LINK = "#"
-
-# Número de WhatsApp para testes (com DDD, sem símbolos)
-WHATSAPP_TESTE = "5518997734078"
 
 # Dicionário temporário para controle de bloqueio por IP
 ip_blocklist = {}
@@ -64,11 +60,18 @@ CSS_RESPONSIVO = """
 
     .divider { height: 1px; background: rgba(255,255,255,0.08); margin: 20px 0; }
     .section-title { font-size: 13px; color: #a1a1aa; margin-bottom: 8px; text-align: left; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .back-link { display: inline-block; margin-top: 15px; font-size: 13px; color: #a1a1aa; text-decoration: none; }
-    .back-link:hover { color: #fff; }
+    
+    /* Área de Navegação com Paginação e Início */
+    .nav-footer { display: flex; gap: 8px; margin-top: 18px; width: 100%; }
+    .nav-btn { flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #27272a; transition: background 0.2s; }
+    .nav-inicio { background-color: #27272a; color: #fff; }
+    .nav-inicio:hover { background-color: #3f3f46; border-color: #ff2a6d; }
+    .nav-pagina { background-color: #18181b; color: #a1a1aa; }
+    .nav-pagina.ativo { background-color: #ff2a6d; color: #fff; border-color: #ff2a6d; }
+    .nav-pagina:hover:not(.ativo) { background-color: #27272a; color: #fff; }
 """
 
-# --- PÁGINA 1: VITRINE PRINCIPAL ---
+# --- PÁGINA 1: VITRINE PRINCIPAL (Início) ---
 @app.route("/")
 def index():
     return render_template_string("""
@@ -95,6 +98,12 @@ def index():
 
         <div class="section-title">Conteúdos Exclusivos</div>
         <a href="/aviso-idade" class="btn btn-adult">🔥 Conteúdos +18 (Privacy & VIP)</a>
+
+        <!-- Paginação / Atalhos da Página Inicial -->
+        <div class="nav-footer">
+            <span class="nav-btn nav-pagina ativo">1</span>
+            <a href="/aviso-idade" class="nav-btn nav-pagina">2 →</a>
+        </div>
     </div>
 </body>
 </html>
@@ -119,7 +128,10 @@ def aviso_idade():
                 <h2 style="color: #ff2a6d;">⛔ Acesso Temporariamente Indisponível</h2>
                 <p>O acesso a esta área foi restrito para este dispositivo devido à negação da idade mínima.</p>
                 <p>Tente novamente em aproximadamente <b>{{ min }} minuto(s)</b>.</p>
-                <a href="/" class="btn btn-secundario">Voltar para a Página Inicial</a>
+                
+                <div class="nav-footer">
+                    <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
+                </div>
             </div>
         </body>
         </html>
@@ -140,6 +152,13 @@ def aviso_idade():
             <p>Este ambiente contém material adulto exclusivo para maiores de 18 anos.<br><br>Você confirma que tem 18 anos ou mais?</p>
             <a href="/acesso-autorizado" class="btn">Sim, tenho 18 anos ou mais</a>
             <a href="/bloquear-acesso" class="btn btn-secundario">Não tenho</a>
+
+            <!-- Paginação e Início -->
+            <div class="nav-footer">
+                <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
+                <a href="/" class="nav-btn nav-pagina">← 1</a>
+                <span class="nav-btn nav-pagina ativo">2</span>
+            </div>
         </div>
     </body>
     </html>
@@ -174,7 +193,12 @@ def acesso_autorizado():
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
             <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram</a>
 
-            <a href="/" class="back-link">← Voltar para a página inicial</a>
+            <!-- Paginação e Início -->
+            <div class="nav-footer">
+                <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
+                <a href="/aviso-idade" class="nav-btn nav-pagina">← Voltar</a>
+                <span class="nav-btn nav-pagina ativo">3</span>
+            </div>
         </div>
     </body>
     </html>
@@ -218,56 +242,54 @@ def cadastro_vip():
                     <input type="text" name="telegram" class="form-control" placeholder="Ex: @seuusuario" required>
                 </div>
 
-                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Finalizar e Solicitar Acesso</button>
+                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Finalizar Cadastro</button>
             </form>
 
-            <a href="/acesso-autorizado" class="back-link">← Voltar para as opções</a>
+            <!-- Paginação e Início -->
+            <div class="nav-footer">
+                <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
+                <a href="/acesso-autorizado" class="nav-btn nav-pagina">← Voltar</a>
+                <span class="nav-btn nav-pagina ativo">4</span>
+            </div>
         </div>
     </body>
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: PROCESSAR O CADASTRO E MOSTRAR TELA DE SUCESSO (COM REDICIONAMENTO AUTOMÁTICO OPCIONAL OU AVISO) ---
+# --- ROTA: PROCESSAR O CADASTRO E MANTER O CLIENTE NO SITE (TELA DE SUCESSO) ---
 @app.route("/processar-vip", methods=["POST"])
 def processar_vip():
     nome = request.form.get("nome")
     email = request.form.get("email")
     whatsapp = request.form.get("whatsapp")
     telegram = request.form.get("telegram")
-    
-    # Mensagem detalhada que vai para o WhatsApp dela/seu
-    mensagem = f"🚨 *NOVO CADASTRO VIP (SIMULAÇÃO)*\n\n👤 Nome: {nome}\n📧 E-mail: {email}\n📱 WhatsApp: {whatsapp}\n✈️ Telegram: {telegram}\n\n*Status:* Aguardando liberação (Prazo de até 24h)."
-    mensagem_codificada = urllib.parse.quote(mensagem)
-    
-    # Link que dispara direto para o WhatsApp de atendimento
-    whatsapp_url = f"https://wa.me/{WHATSAPP_TESTE}?text={mensagem_codificada}"
 
-    # Renderiza a tela de sucesso informando o prazo de 24 horas e oferecendo o botão para concluir no WhatsApp
     return render_template_string("""
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Solicitação Enviada</title>
+        <title>Cadastro Concluído</title>
         <style>{{ css|safe }}</style>
     </head>
     <body>
         <div class="container">
             <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
-            <h2 style="color: #00e676;">Solicitação Recebida!</h2>
-            <p style="margin-top: 15px;">Seus dados foram salvos com sucesso em nosso sistema.</p>
-            <p style="background: #18181b; padding: 12px; border-radius: 10px; border: 1px solid #27272a; font-size: 13px;">
-                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do atendimento.
+            <h2 style="color: #00e676;">Tudo Pronto!</h2>
+            <p style="margin-top: 15px;">Seus dados foram cadastrados com sucesso no sistema.</p>
+            <p style="background: #18181b; padding: 14px; border-radius: 10px; border: 1px solid #27272a; font-size: 13.5px; line-height: 1.6;">
+                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b> após a confirmação do pagamento. Fique de olho no seu WhatsApp e Telegram!
             </p>
             
-            <a href="{{ wa_url }}" target="_blank" class="btn btn-vip" style="margin-top: 20px;">Abrir Atendimento no WhatsApp</a>
-            
-            <a href="/" class="back-link">Voltar para a Página Inicial</a>
+            <!-- Paginação e Início -->
+            <div class="nav-footer">
+                <a href="/" class="nav-btn nav-inicio" style="flex: 2;">🏠 Voltar para a Página Inicial</a>
+            </div>
         </div>
     </body>
     </html>
-    """, css=CSS_RESPONSIVO, wa_url=whatsapp_url)
+    """, css=CSS_RESPONSIVO)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
