@@ -8,7 +8,7 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "SEU_ACCESS_TOKEN_DO_MERCADO_PAGO")
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# Mini site completo com os links oficiais salvos e seções estruturadas
+# Mini site com a estrutura organizada por blocos (Redes, Conteúdo +18 e Canal VIP com Pix)
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -59,7 +59,7 @@ HTML_INDEX = """
             margin-bottom: 25px;
         }
         .section-title {
-            font-size: 14px;
+            font-size: 13px;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -88,20 +88,50 @@ HTML_INDEX = """
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .btn-tiktok { background-color: #010101; border: 1px solid #333; }
         .btn-kwai { background-color: #ff5722; }
-        .btn-telegram-preview { background-color: #229ED9; }
+        
+        /* Bloco Conteúdo +18 */
+        .box-adult {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #334155;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: left;
+        }
+        .box-adult h3 {
+            font-size: 14px;
+            color: var(--accent);
+            margin: 0 0 10px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+        .btn-preview { background-color: #229ED9; }
         .btn-privacy { background-color: #00aff0; }
 
+        /* Bloco Canal VIP Telegram com Pagamento */
         .vip-box {
-            background: rgba(244, 63, 94, 0.1);
+            background: rgba(244, 63, 94, 0.08);
             border: 1px dashed var(--accent);
             border-radius: 10px;
             padding: 15px;
             margin-top: 20px;
         }
+        .vip-box h3 {
+            font-size: 15px;
+            color: var(--text-main);
+            margin: 0 0 5px 0;
+        }
+        .vip-price {
+            font-size: 18px;
+            color: var(--success);
+            font-weight: bold;
+            margin-bottom: 12px;
+        }
         input {
             width: 100%;
             padding: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             border-radius: 6px;
             border: 1px solid #334155;
             background: var(--bg-color);
@@ -143,29 +173,31 @@ HTML_INDEX = """
 </head>
 <body>
     <div class="container">
-        <h1>Conteúdos Exclusivos</h1>
-        <p class="subtitle">Acesse minhas redes, prévias e garanta sua vaga VIP</p>
+        <h1>Painel Exclusivo</h1>
+        <p class="subtitle">Acesse minhas redes e conteúdos abaixo</p>
 
-        <!-- Redes Sociais com os links corretos -->
-        <div class="section-title">Minhas Redes</div>
+        <!-- Redes Sociais -->
+        <div class="section-title">Redes Sociais</div>
         <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
-        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">tiktok TikTok</a>
+        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
         <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
 
-        <!-- Conteúdos e Prévias -->
-        <div class="section-title">Conteúdos +18 & Prévias</div>
-        <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-telegram-preview">💬 Grupo de Prévias (Telegram Grátis)</a>
-        <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Meu Privacy / Plataformas</a>
+        <!-- Bloco de Conteúdo +18 -->
+        <div class="box-adult">
+            <h3>🔥 Conteúdo +18</h3>
+            <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis)</a>
+            <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataformas</a>
+        </div>
 
-        <!-- Seção VIP / Mercado Pago -->
+        <!-- Bloco Canal VIP Telegram com Pagamento -->
         <div class="vip-box">
-            <div class="section-title" style="margin-top:0; border:none; color: var(--accent);">🔥 Canal VIP Definitivo</div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Acesso completo liberado direto após o pagamento (R$ 29,90)</p>
+            <h3>🚀 Canal VIP Telegram</h3>
+            <div class="vip-price">R$ 29,90</div>
             
             <div id="form-pagamento">
-                <input type="text" id="nome" placeholder="Seu Nome" required>
+                <input type="text" id="nome" placeholder="Seu Nome Completo" required>
                 <input type="email" id="email" placeholder="Seu E-mail" required>
-                <button class="action-btn" onclick="gerarPix()">Gerar Pix de Acesso</button>
+                <button class="action-btn" onclick="gerarPix()">Liberar Acesso VIP (Gerar Pix)</button>
             </div>
 
             <div id="resultado-pix">
@@ -173,7 +205,7 @@ HTML_INDEX = """
                 <textarea id="copia-cola" readonly></textarea>
                 <button onclick="copiarPix()" class="action-btn" style="background-color: #10b981; padding: 10px; font-size: 13px;">Copiar Código Pix</button>
                 
-                <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Linhas de redirecionamento para o bot serão inseridas exatamente aqui -->
+                <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Linha reservada para direcionar ao bot após confirmação -->
             </div>
         </div>
     </div>
@@ -189,7 +221,7 @@ HTML_INDEX = """
             }
 
             const btn = document.querySelector('#form-pagamento button');
-            btn.innerText = "Gerando...";
+            btn.innerText = "Gerando Pix...";
             btn.disabled = true;
 
             try {
@@ -206,12 +238,12 @@ HTML_INDEX = """
                     document.getElementById('resultado-pix').style.display = 'block';
                 } else {
                     alert('Erro ao gerar pagamento: ' + data.detalhes);
-                    btn.innerText = "Gerar Pix de Acesso";
+                    btn.innerText = "Liberar Acesso VIP (Gerar Pix)";
                     btn.disabled = false;
                 }
             } catch (error) {
                 alert('Erro de conexão. Tente novamente.');
-                btn.innerText = "Gerar Pix de Acesso";
+                btn.innerText = "Liberar Acesso VIP (Gerar Pix)";
                 btn.disabled = false;
             }
         }
@@ -247,7 +279,7 @@ HTML_SUCESSO = """
     <div class="container">
         <h1>Pagamento Confirmado!</h1>
         <p>Obrigado. O seu pagamento foi processado com sucesso.</p>
-        <a href="https://t.me/seu_bot_aqui" class="btn-telegram">Aceder ao Canal / Bot do Telegram</a>
+        <a href="https://t.me/seu_bot_aqui" class="btn-telegram">Aceder ao Canal VIP do Telegram</a>
     </div>
 </body>
 </html>
@@ -264,7 +296,7 @@ def criar_pagamento():
         
         payment_data = {
             "transaction_amount": float(dados_cliente.get("valor", 29.90)),
-            "description": "Acesso VIP Exclusivo",
+            "description": "Acesso Canal VIP Telegram",
             "payment_method_id": "pix",
             "payer": {
                 "email": dados_cliente.get("email", "cliente@email.com"),
