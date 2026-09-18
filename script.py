@@ -12,10 +12,10 @@ ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0
 sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
 
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Coloque o seu Chat ID numérico do Telegram aqui para receber os avisos
+TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" # Coloque o seu Chat ID numérico do Telegram aqui se quiser receber os avisos
 
-# Substitua 'NomeDoSeuBot' pelo username real do seu bot do Telegram (sem o @)
-LINK_DIRETO_BOT = "https://t.me/NomeDoSeuBot?text=Quero%20meu%20acesso%20ao%20Canal%20VIP"
+# Link direto atualizado com o seu bot correto (@QuickBookrosaBot)
+LINK_DIRETO_BOT = "https://t.me/QuickBookrosaBot?text=Quero%20meu%20acesso%20ao%20Canal%20VIP"
 # =================================================
 
 INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
