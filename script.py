@@ -8,7 +8,7 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN", "SEU_ACCESS_TOKEN_DO_MERCADO_PAGO")
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# Mini site completo com todas as redes sociais, conteúdos +18, prévias do Telegram e botões originais
+# Mini site completo com os links oficiais salvos e seções estruturadas
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -25,10 +25,6 @@ HTML_INDEX = """
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --success: #34d399;
-            --social-ig: #E1306C;
-            --social-tk: #000000;
-            --social-kw: #FF6600;
-            --social-tg: #229ED9;
         }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -92,7 +88,7 @@ HTML_INDEX = """
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
         .btn-tiktok { background-color: #010101; border: 1px solid #333; }
         .btn-kwai { background-color: #ff5722; }
-        .btn-telegram-preview { background-color: var(--social-tg); }
+        .btn-telegram-preview { background-color: #229ED9; }
         .btn-privacy { background-color: #00aff0; }
 
         .vip-box {
@@ -150,21 +146,21 @@ HTML_INDEX = """
         <h1>Conteúdos Exclusivos</h1>
         <p class="subtitle">Acesse minhas redes, prévias e garanta sua vaga VIP</p>
 
-        <!-- Redes Sociais -->
+        <!-- Redes Sociais com os links corretos -->
         <div class="section-title">Minhas Redes</div>
-        <a href="https://instagram.com/SEU_USUARIO" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
-        <a href="https://tiktok.com/@SEU_USUARIO" target="_blank" class="link-button btn-tiktok">tiktok TikTok</a>
+        <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
+        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">tiktok TikTok</a>
         <a href="https://kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
 
         <!-- Conteúdos e Prévias -->
         <div class="section-title">Conteúdos +18 & Prévias</div>
-        <a href="https://t.me/CANAL_PREVIAS" target="_blank" class="link-button btn-telegram-preview">💬 Grupo de Prévias (Telegram Grátis)</a>
+        <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-telegram-preview">💬 Grupo de Prévias (Telegram Grátis)</a>
         <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Meu Privacy / Plataformas</a>
 
         <!-- Seção VIP / Mercado Pago -->
         <div class="vip-box">
             <div class="section-title" style="margin-top:0; border:none; color: var(--accent);">🔥 Canal VIP Definitivo</div>
-            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Acesso completo liberado direto no Bot após o pagamento (R$ 29,90)</p>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Acesso completo liberado direto após o pagamento (R$ 29,90)</p>
             
             <div id="form-pagamento">
                 <input type="text" id="nome" placeholder="Seu Nome" required>
@@ -177,7 +173,7 @@ HTML_INDEX = """
                 <textarea id="copia-cola" readonly></textarea>
                 <button onclick="copiarPix()" class="action-btn" style="background-color: #10b981; padding: 10px; font-size: 13px;">Copiar Código Pix</button>
                 
-                <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Linha reservada para direcionar ao Bot do Telegram após confirmação -->
+                <!-- [PONTO DE ADAPTAÇÃO FUTURA DO BOT] Linhas de redirecionamento para o bot serão inseridas exatamente aqui -->
             </div>
         </div>
     </div>
@@ -249,9 +245,9 @@ HTML_SUCESSO = """
 </head>
 <body>
     <div class="container">
-        <h1>Pagamento Aprovado!</h1>
+        <h1>Pagamento Confirmado!</h1>
         <p>Obrigado. O seu pagamento foi processado com sucesso.</p>
-        <a href="https://t.me/seu_bot_aqui" class="btn-telegram">Aceder ao Bot do Telegram</a>
+        <a href="https://t.me/seu_bot_aqui" class="btn-telegram">Aceder ao Canal / Bot do Telegram</a>
     </div>
 </body>
 </html>
