@@ -38,19 +38,34 @@ HTML_INDEX = """
         }
         .container {
             background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
             width: 100%;
             max-width: 450px;
             box-sizing: border-box;
             text-align: center;
             margin: 20px;
+            border: 1px solid #334155;
+        }
+        .avatar-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--accent), #cbd5e1);
+            border-radius: 50%;
+            margin: 0 auto 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
         }
         h1 {
-            font-size: 26px;
+            font-size: 24px;
             margin-bottom: 5px;
-            color: var(--accent);
+            color: var(--text-main);
         }
         p.subtitle {
             color: var(--text-muted);
@@ -58,53 +73,58 @@ HTML_INDEX = """
             margin-bottom: 25px;
         }
         .section-title {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            margin: 20px 0 10px 0;
+            letter-spacing: 1.5px;
+            margin: 25px 0 12px 0;
             text-align: left;
             border-bottom: 1px solid #334155;
-            padding-bottom: 5px;
+            padding-bottom: 6px;
+            font-weight: 600;
         }
         .link-button {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             width: 100%;
             padding: 14px;
             margin-bottom: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             color: white;
             text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
+            font-weight: 600;
+            font-size: 14px;
             box-sizing: border-box;
-            transition: opacity 0.3s, transform 0.2s;
+            transition: all 0.25s ease;
             cursor: pointer;
             border: none;
-            text-align: center;
         }
         .link-button:hover {
-            opacity: 0.9;
+            opacity: 0.92;
             transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
         .btn-instagram { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-        .btn-tiktok { background-color: #010101; border: 1px solid #333; }
+        .btn-tiktok { background-color: #000000; border: 1px solid #334155; }
         .btn-kwai { background-color: #ff5722; }
-        .btn-adult-main { background-color: var(--accent); font-size: 16px; margin-top: 15px; width: 100%; }
+        .btn-adult-main { background-color: var(--accent); font-size: 15px; margin-top: 20px; box-shadow: 0 4px 15px rgba(244, 63, 94,.4); }
     </style>
 </head>
 <body>
     <div class="container">
+        <div class="avatar-placeholder">I</div>
         <h1>Iasmin</h1>
-        <p class="subtitle">Acesse minhas redes abaixo</p>
+        <p class="subtitle">Bem-vindo(a) aos meus links oficiais</p>
 
         <div class="section-title">Redes Sociais</div>
         <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">📸 Instagram Oficial</a>
-        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok</a>
-        <!-- Cole o link correto do Kwai da sua amiga dentro das aspas abaixo -->
-        <a href="https://www.kwai.com" target="_blank" class="link-button btn-kwai">⚡ Kwai</a>
+        <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">🎵 TikTok Oficial</a>
+        <a href="https://k.kwai.com/u/@mc.iasmin_ofc/z0YdoxCi" target="_blank" class="link-button btn-kwai">⚡ Kwai Oficial</a>
 
-        <a href="/conteudos" target="_blank" onclick="return confirmarIdade(event)" class="link-button btn-adult-main">🔥 CONTEÚDO +18</a>
+        <div class="section-title">Conteúdo Exclusivo</div>
+        <a href="/conteudos" target="_blank" onclick="return confirmarIdade(event)" class="link-button btn-adult-main">🔥 CONTEÚDO +18 (Área VIP)</a>
     </div>
 
     <script>
@@ -151,17 +171,18 @@ HTML_CONTEUDOS = """
         }
         .container {
             background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
             width: 100%;
             max-width: 450px;
             box-sizing: border-box;
             text-align: center;
             margin: 20px;
+            border: 1px solid #334155;
         }
         h1 {
-            font-size: 26px;
+            font-size: 24px;
             margin-bottom: 5px;
             color: var(--accent);
         }
@@ -175,36 +196,38 @@ HTML_CONTEUDOS = """
             width: 100%;
             padding: 14px;
             margin-bottom: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             color: white;
             text-decoration: none;
-            font-weight: bold;
-            font-size: 15px;
+            font-weight: 600;
+            font-size: 14px;
             box-sizing: border-box;
-            transition: opacity 0.3s, transform 0.2s;
+            transition: all 0.25s ease;
             cursor: pointer;
             border: none;
         }
         .link-button:hover {
-            opacity: 0.9;
+            opacity: 0.92;
             transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
         .btn-privacy { background-color: #00aff0; }
         .btn-preview { background-color: #229ED9; }
         .btn-vip { background-color: #10b981; }
-        .btn-voltar { background-color: #475569; font-size: 13px; padding: 10px; margin-top: 15px; }
+        .btn-voltar { background-color: #334155; color: var(--text-muted); font-size: 13px; padding: 10px; margin-top: 15px; }
+        .btn-voltar:hover { color: #fff; background-color: #475569; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Iasmin</h1>
-        <p class="subtitle">Área restrita - Conteúdos Exclusivos</p>
+        <h1>Área Restrita</h1>
+        <p class="subtitle">Escolha uma das opções abaixo</p>
 
-        <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataformas</a>
-        <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis)</a>
-        <a href="/checkout-vip" class="link-button btn-vip">🚀 Canal VIP Telegram (R$ 29,90)</a>
+        <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataforma Principal</a>
+        <a href="https://t.me/SEU_GRUPO_PREVIAS" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis no Telegram)</a>
+        <a href="/checkout-vip" class="link-button btn-vip">🚀 Canal VIP Telegram (Acesso Direto - R$ 29,90)</a>
 
-        <a href="/" class="link-button btn-voltar">⬅ Página Inicial</a>
+        <a href="/" class="link-button btn-voltar">⬅ Voltar à Página Inicial</a>
     </div>
 </body>
 </html>
@@ -241,17 +264,18 @@ HTML_CHECKOUT = """
         }
         .container {
             background-color: var(--card-bg);
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            padding: 35px 25px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7);
             width: 100%;
             max-width: 450px;
             box-sizing: border-box;
             text-align: center;
             margin: 20px;
+            border: 1px solid #334155;
         }
         h1 {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 5px;
             color: var(--accent);
         }
@@ -261,7 +285,7 @@ HTML_CHECKOUT = """
             margin-bottom: 20px;
         }
         .vip-box {
-            background: rgba(244, 63, 94, 0.08);
+            background: rgba(244, 63, 94, 0.05);
             border: 1px dashed var(--accent);
             border-radius: 10px;
             padding: 15px;
@@ -308,34 +332,41 @@ HTML_CHECKOUT = """
             box-sizing: border-box;
             margin-bottom: 8px;
         }
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
         .link-button {
             display: block;
-            width: 100%;
+            flex: 1;
             padding: 10px;
-            margin-top: 15px;
             border-radius: 8px;
             color: white;
             text-decoration: none;
-            font-weight: bold;
-            font-size: 13px;
+            font-weight: 600;
+            font-size: 12px;
             box-sizing: border-box;
             text-align: center;
             border: none;
             cursor: pointer;
         }
-        .btn-voltar { background-color: #475569; }
+        .btn-voltar { background-color: #334155; color: var(--text-muted); }
+        .btn-voltar:hover { color: #fff; background-color: #475569; }
+        .btn-home { background-color: #1e293b; border: 1px solid #475569; color: var(--text-muted); }
+        .btn-home:hover { color: #fff; background-color: #334155; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Canal VIP Telegram</h1>
-        <p class="subtitle">Liberação automática após o pagamento (R$ 29,90)</p>
+        <h1>Checkout Canal VIP</h1>
+        <p class="subtitle">Preencha para gerar o Pix automático (R$ 29,90)</p>
 
         <div class="vip-box">
             <div id="form-pagamento">
                 <input type="text" id="nome" placeholder="Seu Nome Completo" required>
                 <input type="email" id="email" placeholder="Seu E-mail" required>
-                <button class="action-btn" onclick="gerarPix()">Gerar Pix</button>
+                <button class="action-btn" onclick="gerarPix()">Gerar Pix Agora</button>
             </div>
 
             <div id="resultado-pix">
@@ -345,7 +376,10 @@ HTML_CHECKOUT = """
             </div>
         </div>
 
-        <a href="/conteudos" class="link-button btn-voltar">⬅ Página Anterior</a>
+        <div class="nav-buttons">
+            <a href="/conteudos" class="link-button btn-voltar">⬅ Voltar aos Conteúdos</a>
+            <a href="/" class="link-button btn-home">🏠 Início</a>
+        </div>
     </div>
 
     <script>
@@ -376,12 +410,12 @@ HTML_CHECKOUT = """
                     document.getElementById('resultado-pix').style.display = 'block';
                 } else {
                     alert('Erro ao gerar pagamento: ' + data.detalhes);
-                    btn.innerText = "Gerar Pix";
+                    btn.innerText = "Gerar Pix Agora";
                     btn.disabled = false;
                 }
             } catch (error) {
                 alert('Erro de conexão. Tente novamente.');
-                btn.innerText = "Gerar Pix";
+                btn.innerText = "Gerar Pix Agora";
                 btn.disabled = false;
             }
         }
