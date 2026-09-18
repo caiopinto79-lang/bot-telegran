@@ -8,26 +8,20 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
 # ================= CONFIGURAÇÕES =================
-# Credenciais oficiais do Mercado Pago
 ACCESS_TOKEN_MP = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 sdk = mercadopago.SDK(ACCESS_TOKEN_MP)
 
-# Credenciais oficiais do Bot do Telegram
 TELEGRAM_BOT_TOKEN = "7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc"
-# Insira aqui o Chat ID de destino (pode ser o ID numérico do chat privado dela com o bot ou grupo de avisos)
 TELEGRAM_CHAT_ID = "SEU_CHAT_ID_AQUI" 
 # =================================================
 
-# Links reais das redes sociais da Iasmin
 INSTAGRAM_LINK = "https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj"
 TIKTOK_LINK = "https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE"
 KWAI_LINK = "https://k.kwai.com/u/@mc.iasmin_ofc/xM6daWCD"
 
-# Links diretos
 TELEGRAM_PREVIAS_LINK = "#"
 PRIVACY_LINK = "#"
 
-# Dicionário temporário para controle de bloqueio por IP
 ip_blocklist = {}
 
 def verificar_bloqueio():
@@ -41,18 +35,17 @@ def verificar_bloqueio():
     return 0
 
 def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
-    """Envia os dados do cadastro de forma privada para o bot/grupo da Iasmin"""
     if TELEGRAM_CHAT_ID == "SEU_CHAT_ID_AQUI":
-        return # Evita erro caso o Chat ID não tenha sido configurado ainda
+        return
     
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     mensagem = (
         f"👑 *NOVO CADASTRO - CANAL VIP*\n\n"
         f"👤 *Nome:* {nome}\n"
         f"📧 *E-mail:* {email}\n"
-        f"📱 *WhatsApp (Segurança):* {whatsapp}\n"
+        f"📱 *WhatsApp:* {whatsapp}\n"
         f"💬 *Telegram:* {telegram_user}\n\n"
-        f"💳 *Status:* Pagamento de R$ 1,00 solicitado."
+        f"💳 *Status:* Pix de R$ 1,00 gerado."
     )
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -64,7 +57,6 @@ def enviar_notificacao_telegram(nome, email, whatsapp, telegram_user):
     except Exception as e:
         print(f"Erro ao enviar notificação para o Telegram: {e}")
 
-# Estilo CSS Global Responsivo
 CSS_RESPONSIVO = """
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #0b0b0e; color: #f1f1f1; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
@@ -89,7 +81,6 @@ CSS_RESPONSIVO = """
     .btn-vip { background-color: #00e676; color: #000; box-shadow: 0 4px 15px rgba(0,230,118,0.3); }
     .btn-vip:hover { background-color: #00c853; }
 
-    /* Estilos para o Formulário */
     .form-group { margin-bottom: 15px; text-align: left; }
     .form-group label { display: block; font-size: 12.5px; color: #a1a1aa; margin-bottom: 5px; font-weight: 600; }
     .form-control { width: 100%; padding: 12px; border-radius: 10px; background-color: #18181b; border: 1px solid #27272a; color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s; }
@@ -106,7 +97,6 @@ CSS_RESPONSIVO = """
     .nav-voltar:hover { background-color: #27272a; color: #fff; border-color: #ff2a6d; }
 """
 
-# --- PÁGINA 1: VITRINE PRINCIPAL ---
 @app.route("/")
 def index():
     return render_template_string("""
@@ -137,7 +127,6 @@ def index():
 </html>
 """, css=CSS_RESPONSIVO, instagram=INSTAGRAM_LINK, tiktok=TIKTOK_LINK, kwai=KWAI_LINK)
 
-# --- TELA DE AVISO DE MAIORIDADE ---
 @app.route("/aviso-idade")
 def aviso_idade():
     minutos_bloqueio = verificar_bloqueio()
@@ -154,9 +143,8 @@ def aviso_idade():
         <body>
             <div class="container">
                 <h2 style="color: #ff2a6d;">⛔ Acesso Temporariamente Indisponível</h2>
-                <p>O acesso a esta área foi restrito para este dispositivo devido à negação da idade mínima.</p>
+                <p>O acesso a esta área foi restrito devido à negação da idade mínima.</p>
                 <p>Tente novamente em aproximadamente <b>{{ min }} minuto(s)</b>.</p>
-                
                 <div class="nav-footer">
                     <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Início</a>
                 </div>
@@ -196,7 +184,6 @@ def bloquear_acesso():
     ip_blocklist[ip] = time.time() + 300
     return redirect(url_for('aviso_idade'))
 
-# --- ROTA: ÁREA RESTRITA ---
 @app.route("/acesso-autorizado")
 def acesso_autorizado():
     session['maior_idade'] = True
@@ -217,7 +204,7 @@ def acesso_autorizado():
 
             <a href="{{ privacy }}" target="_blank" class="btn btn-privacy">💙 Assinar no Privacy</a>
             <a href="{{ previas }}" target="_blank" class="btn btn-telegram">💬 Telegram de Prévias</a>
-            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (R$ 1,00)</a>
+            <a href="/cadastro-vip" class="btn btn-vip">👑 Canal VIP Telegram (Pix R$ 1,00)</a>
 
             <div class="nav-footer">
                 <a href="/" class="nav-btn nav-inicio">🏠 Início</a>
@@ -228,7 +215,6 @@ def acesso_autorizado():
     </html>
     """, css=CSS_RESPONSIVO, privacy=PRIVACY_LINK, previas=TELEGRAM_PREVIAS_LINK)
 
-# --- ROTA: FORMULÁRIO DE CADASTRO VIP ---
 @app.route("/cadastro-vip")
 def cadastro_vip():
     return render_template_string("""
@@ -243,9 +229,9 @@ def cadastro_vip():
     <body>
         <div class="container">
             <h2>👑 Canal VIP Telegram</h2>
-            <p>Preencha seus dados para gerar o pagamento de <b>R$ 1,00</b> e garantir sua vaga:</p>
+            <p>Preencha seus dados para gerar o Pix instantâneo de <b>R$ 1,00</b>:</p>
             
-            <form action="/criar-pagamento" method="POST">
+            <form action="/criar-pagamento-pix" method="POST">
                 <div class="form-group">
                     <label>Seu Nome:</label>
                     <input type="text" name="nome" class="form-control" placeholder="Digite seu nome completo" required>
@@ -266,7 +252,7 @@ def cadastro_vip():
                     <input type="text" name="telegram" class="form-control" placeholder="Ex: @seuusuario" required>
                 </div>
 
-                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Pagar R$ 1,00 e Finalizar</button>
+                <button type="submit" class="btn btn-vip" style="margin-top: 15px;">Gerar Pix de R$ 1,00</button>
             </form>
 
             <div class="nav-footer">
@@ -278,75 +264,95 @@ def cadastro_vip():
     </html>
     """, css=CSS_RESPONSIVO)
 
-# --- ROTA: CRIAR PREFERÊNCIA NO MERCADO PAGO E NOTIFICAR BOT ---
-@app.route("/criar-pagamento", methods=["POST"])
-def criar_pagamento():
+# --- ROTA: GERAR PAGAMENTO PIX DIRETO NO MERCADO PAGO ---
+@app.route("/criar-pagamento-pix", methods=["POST"])
+def criar_pagamento_pix():
     nome = request.form.get("nome")
     email = request.form.get("email")
     whatsapp = request.form.get("whatsapp")
     telegram = request.form.get("telegram")
 
-    # Dispara a notificação silenciosa para o bot/grupo do Telegram dela
+    # Notifica o bot do Telegram com os dados do lead
     enviar_notificacao_telegram(nome, email, whatsapp, telegram)
 
-    # Cria a preferência de pagamento no Mercado Pago (R$ 1,00)
-    preference_data = {
-        "items": [
-            {
-                "title": "Acesso Canal VIP Telegram - Iasmin",
-                "quantity": 1,
-                "unit_price": 1.00,
-                "currency_id": "BRL"
-            }
-        ],
+    # Dados para criar pagamento via Pix diretamente na API do Mercado Pago
+    payment_data = {
+        "transaction_amount": 1.00,
+        "description": "Acesso Canal VIP Telegram - Iasmin",
+        "payment_method_id": "pix",
         "payer": {
-            "name": nome,
-            "email": email
-        },
-        "back_urls": {
-            "success": "https://sua-url-do-render.onrender.com/sucesso",
-            "failure": "https://sua-url-do-render.onrender.com/cadastro-vip",
-            "pending": "https://sua-url-do-render.onrender.com/sucesso"
-        },
-        "auto_return": "approved"
+            "email": email,
+            "first_name": nome,
+            "identification": {
+                "type": "CPF",
+                "number": "00000000000" # CPF genérico padrão para testes/simplificação se o cliente não digitar
+            }
+        }
     }
 
     try:
-        preference_response = sdk.preference().create(preference_data)
-        preference = preference_response["response"]
-        init_point = preference["init_point"]
-        return redirect(init_point)
-    except Exception as e:
-        return f"Erro ao processar pagamento com o Mercado Pago: {e}"
+        payment_response = sdk.payment().create(payment_data)
+        payment = payment_response["response"]
+        
+        # Extrai os dados do Pix gerado
+        point_of_interaction = payment.get("point_of_interaction", {})
+        transaction_data = point_of_interaction.get("transaction_data", {})
+        
+        qr_code = transaction_data.get("qr_code", "Erro ao gerar código Pix")
+        qr_code_base64 = transaction_data.get("qr_code_base64", "")
 
-# --- ROTA: TELA DE SUCESSO ---
-@app.route("/sucesso")
-def sucesso():
-    return render_template_string("""
-    <!DOCTYPE html>
-    <html lang="pt-BR">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cadastro Concluído</title>
-        <style>{{ css|safe }}</style>
-    </head>
-    <body>
-        <div class="container">
-            <div style="font-size: 50px; margin-bottom: 10px;">🎉</div>
-            <h2 style="color: #00e676;">Tudo Pronto!</h2>
-            <p style="margin-top: 15px;">Seus dados e pagamento foram processados com sucesso.</p>
-            <p style="background: #18181b; padding: 14px; border-radius: 10px; border: 1px solid #27272a; font-size: 13.5px; line-height: 1.6;">
-                ⏳ O seu acesso ao Canal VIP será liberado em <b>até 24 horas</b>. Fique de olho no seu <b>Telegram</b>!
-            </p>
-            
-            <div class="nav-footer">
-                <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Voltar para a Página Inicial</a>
+        # Renderiza a página exclusiva com o QR Code e o botão Copia e Cola
+        return render_template_string("""
+        <!DOCTYPE html>
+        <html lang="pt-BR">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Pagamento Pix - Canal VIP</title>
+            <style>{{ css|safe }}</style>
+        </head>
+        <body>
+            <div class="container">
+                <h2>⚡ Pix Gerado com Sucesso!</h2>
+                <p>Escaneie o QR Code abaixo ou copie o código Pix para pagar <b>R$ 1,00</b>:</p>
+                
+                {% if qr_base64 %}
+                <div style="background: #fff; padding: 12px; border-radius: 12px; display: inline-block; margin-bottom: 15px;">
+                    <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR Code Pix" style="width: 180px; height: 180px; display: block;">
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label>Pix Copia e Cola:</label>
+                    <textarea class="form-control" id="pixCode" rows="3" readonly style="resize: none; font-size: 11px;">{{ qr_code }}</textarea>
+                </div>
+
+                <button type="button" class="btn btn-vip" onclick="copiarPix()">📋 Copiar Código Pix</button>
+                
+                <p style="font-size: 11.5px; color: #a1a1aa; margin-top: 15px;">
+                    Após o pagamento, o seu acesso ao Canal VIP será liberado no seu Telegram em breve.
+                </p>
+
+                <div class="nav-footer">
+                    <a href="/" class="nav-btn nav-inicio" style="flex: 1;">🏠 Voltar ao Início</a>
+                </div>
             </div>
-        </div>
-    </body>
-    </html>
-    """, css=CSS_RESPONSIVO)
+
+            <script>
+                function copiarPix() {
+                    var copyText = document.getElementById("pixCode");
+                    copyText.select();
+                    copyText.setSelectionRange(0, 99999);
+                    navigator.clipboard.writeText(copyText.value);
+                    alert("Código Pix copiado com sucesso!");
+                }
+            </script>
+        </body>
+        </html>
+        """, css=CSS_RESPONSIVO, qr_code=qr_code, qr_base64=qr_code_base64)
+
+    except Exception as e:
+        return f"Erro ao gerar o Pix via Mercado Pago: {e}"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
