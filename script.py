@@ -445,7 +445,7 @@ def conteudos():
 def checkout_vip():
     return render_template_string(HTML_CHECKOUT)
 
-# Rota de criação do Pix via Mercado Pago
+# Rota de criação do Pix via Mercado Pago (Com tratamentos blindados)
 @app.route('/criar_pagamento', methods=['POST'])
 def criar_pagamento():
     try:
@@ -462,11 +462,20 @@ def criar_pagamento():
         }
 
         result = sdk.payment().create(payment_data)
-        payment_response = result["response"]
+        payment_response = result.get("response", {})
         
-        transaction_data = payment_response.get("point_of_interaction", {}).get("transaction_data", {})
-        qr_code = transaction_data.get("qr_code", "")
+        # Formas seguras de capturar o código Pix independente do retorno do SDK
+        qr_code = ""
+        if "point_of_interaction" in payment_response:
+            qr_code = payment_response["point_of_interaction"].get("transaction_data", {}).get("qr_code", "")
+        
+        if not qr_code and "transaction_data" in payment_response:
+            qr_code = payment_response["transaction_data"].get("qr_code", "")
+
         payment_id = payment_response.get("id")
+
+        if not qr_code:
+            return jsonify({"status": "erro", "detalhes": "O Mercado Pago não retornou o código QR/Pix. Verifique se o token de acesso possui permissão para Pix."}), 400
 
         return jsonify({
             "status": "sucesso",
