@@ -126,19 +126,16 @@ HTML_INDEX = """
 
         <div class="section-title">Redes Sociais</div>
         
-        <!-- Instagram -->
         <a href="https://www.instagram.com/iasmin_cavala?stkn=aGQ4MmYwd3ZrcnNj" target="_blank" class="link-button btn-instagram">
             <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
             Instagram Oficial
         </a>
 
-        <!-- TikTok -->
         <a href="https://www.tiktok.com/@ofc.mc.iasmin?_r=1&_t=ZS-99pBqgIckoE" target="_blank" class="link-button btn-tiktok">
             <svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
             TikTok Oficial
         </a>
 
-        <!-- Kwai -->
         <a href="https://k.kwai.com/u/@mc.iasmin_ofc/z0YdoxCi" target="_blank" class="link-button btn-kwai">
             <svg viewBox="0 0 24 24"><path d="M16.5 6h-9C5.57 6 4 7.57 4 9.5v5C4 16.43 5.57 18 7.5 18h9c1.93 0 3.5-1.57 3.5-3.5v-5C20 7.57 18.43 6 16.5 6zM9.5 14.5v-5l4.5 2.5-4.5 2.5z"/></svg>
             Kwai Oficial
@@ -268,7 +265,7 @@ HTML_CONTEUDOS = """
 
         <a href="/checkout-vip" class="link-button btn-vip">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.65-2.89 7.98-3.46 3.8-1.63 4.59-1.92 5.1-1.93.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.28z"/></svg>
-            Canal VIP (R$ 1,00 - Teste)
+            Canal VIP (R$ 29,99)
         </a>
 
         <a href="/" class="link-button btn-voltar">⬅ Voltar à Página Inicial</a>
@@ -277,7 +274,7 @@ HTML_CONTEUDOS = """
 </html>
 """
 
-# PÁGINA 3: Tela de Pagamento do Canal VIP
+# PÁGINA 3: Tela de Pagamento do Canal VIP (Forçando o envio de R$ 1,00)
 HTML_CHECKOUT = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -415,14 +412,14 @@ HTML_CHECKOUT = """
 <body>
     <div class="container">
         <h1>Checkout Canal VIP</h1>
-        <p class="subtitle">Preencha seus dados para gerar o Pix (R$ 1,00)</p>
+        <p class="subtitle">Preencha seus dados para gerar o Pix <br><b style="color: #34d399;">(Modo Teste: R$ 1,00)</b></p>
 
         <div class="vip-box">
             <div id="form-pagamento">
                 <input type="text" id="nome" placeholder="Seu Nome Completo" required>
                 <input type="email" id="email" placeholder="Seu E-mail" required>
                 <input type="text" id="telegram" placeholder="Seu @ do Telegram (ex: @seuusuario)" required>
-                <button class="action-btn" onclick="gerarPix()">Gerar Pix Agora</button>
+                <button class="action-btn" onclick="gerarPix()">Gerar Pix de Teste (R$ 1,00)</button>
             </div>
 
             <div id="resultado-pix">
@@ -459,7 +456,7 @@ HTML_CHECKOUT = """
                 const response = await fetch('/criar_pagamento', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, email, telegram, valor: 1.00 })
+                    body: JSON.stringify({ nome, email, telegram })
                 });
 
                 const data = await response.json();
@@ -474,12 +471,12 @@ HTML_CHECKOUT = """
                     document.getElementById('resultado-pix').style.display = 'block';
                 } else {
                     alert('Erro ao gerar pagamento: ' + data.detalhes);
-                    btn.innerText = "Gerar Pix Agora";
+                    btn.innerText = "Gerar Pix de Teste (R$ 1,00)";
                     btn.disabled = false;
                 }
             } catch (error) {
                 alert('Erro de conexão. Tente novamente.');
-                btn.innerText = "Gerar Pix Agora";
+                btn.innerText = "Gerar Pix de Teste (R$ 1,00)";
                 btn.disabled = false;
             }
         }
@@ -509,7 +506,7 @@ def conteudos():
 def checkout_vip():
     return render_template_string(HTML_CHECKOUT)
 
-# Rota de criação do Pix via Mercado Pago capturando o Telegram
+# Rota de criação do Pix via Mercado Pago travada estritamente em R$ 1,00 para teste
 @app.route('/criar_pagamento', methods=['POST'])
 def criar_pagamento():
     try:
@@ -518,11 +515,14 @@ def criar_pagamento():
         nome = dados_cliente.get("nome", "Cliente")
         email = dados_cliente.get("email", "cliente@email.com")
         telegram = dados_cliente.get("telegram", "Não informado")
-        valor = float(dados_cliente.get("valor", 1.00))
+        
+        # VALOR FIXADO EXATAMENTE EM 1.00 PARA TESTES
+        # (Quando for oficializar por R$ 29,99, basta alterar esta linha para 29.99)
+        valor_teste = 1.00
 
         payment_data = {
-            "transaction_amount": valor,
-            "description": f"Acesso VIP - Telegram: {telegram}",
+            "transaction_amount": float(valor_teste),
+            "description": f"Acesso VIP (R$ 29,99) - Telegram: {telegram}",
             "payment_method_id": "pix",
             "payer": {
                 "email": email,
@@ -548,7 +548,7 @@ def criar_pagamento():
         if not qr_code:
             return jsonify({"status": "erro", "detalhes": "O Mercado Pago não retornou o QR Code."}), 400
 
-        print(f"[NOVO PIX GERADO] ID: {payment_id} | Nome: {nome} | Telegram: {telegram} | E-mail: {email}")
+        print(f"[NOVO PIX DE TESTE GERADO] ID: {payment_id} | Valor: R$ {valor_teste:.2f} | Nome: {nome} | Telegram: {telegram}")
 
         return jsonify({
             "status": "sucesso",
