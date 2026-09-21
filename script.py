@@ -2,6 +2,7 @@ import os
 import mercadopago
 from flask import Flask, request, jsonify, render_template_string
 
+from bot import processar_update_telegram
 app = Flask(__name__)
 
 # Token de Acesso do Mercado Pago configurado diretamente
@@ -527,6 +528,13 @@ def webhook_pagamento():
         return jsonify({"status": "recebido"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "detalhes": str(e)}), 500
+@app.route(
+    "/webhook/bot/7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc",
+    methods=["POST"],
+):
+  data = request.get_json()
+  processar_update_telegram(data)
+  return jsonify({"status": "ok"}), 200
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
