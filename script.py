@@ -8,7 +8,7 @@ app = Flask(__name__)
 MP_ACCESS_TOKEN = "APP_USR-6787238743343148-091523-7de483b0fa92f00855ab3523599f0995-175404649"
 sdk = mercadopago.SDK(MP_ACCESS_TOKEN)
 
-# PÁGINA 1: Início (Redes Sociais com Ícones + Botão +18)
+# PÁGINA 1: Início (Redes Sociais com Ícones Perfeitos + Botão +18)
 HTML_INDEX = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -138,9 +138,9 @@ HTML_INDEX = """
             TikTok Oficial
         </a>
 
-        <!-- Kwai -->
+        <!-- Kwai (Com o ícone exato da camerazinha estilizada igual ao app) -->
         <a href="https://k.kwai.com/u/@mc.iasmin_ofc/z0YdoxCi" target="_blank" class="link-button btn-kwai">
-            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-3.5 13.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5zM8.5 14.5h-2v-5h2v5zm1.5-6.5h-5V6h5v2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M16.5 6h-9C5.57 6 4 7.57 4 9.5v5C4 16.43 5.57 18 7.5 18h9c1.93 0 3.5-1.57 3.5-3.5v-5C20 7.57 18.43 6 16.5 6zM9.5 14.5v-5l4.5 2.5-4.5 2.5z"/></svg>
             Kwai Oficial
         </a>
 
@@ -165,7 +165,7 @@ HTML_INDEX = """
 </html>
 """
 
-# PÁGINA 2: Conteúdos Exclusivos (Com ícone de coração estilizado perfeito para o Privacy)
+# PÁGINA 2: Conteúdos Exclusivos (Privacy com ícone de cadeado elegante e Telegram limpo)
 HTML_CONTEUDOS = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -256,9 +256,9 @@ HTML_CONTEUDOS = """
         <h1>Área Restrita</h1>
         <p class="subtitle">Escolha uma das opções abaixo</p>
 
-        <!-- Privacy (Com ícone de coração/assinatura alinhado) -->
+        <!-- Privacy com ícone de cadeado elegante e profissional -->
         <a href="https://privacy.com.br/profile/MCiasmin" target="_blank" class="link-button btn-privacy">
-            <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
             Privacy
         </a>
 
