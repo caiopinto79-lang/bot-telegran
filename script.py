@@ -138,14 +138,17 @@ HTML_INDEX = """
             TikTok Oficial
         </a>
 
-        <!-- Botão Kwai corrigido com ícone oficial -->
+        <!-- Botão Kwai -->
         <a href="https://k.kwai.com/u/@mc.iasmin_ofc/z0YdoxCi" target="_blank" class="link-button btn-kwai">
             <svg viewBox="0 0 512 512"><path d="M400 32H112C70.3 32 36 66.3 36 108v296c0 41.7 34.3 76 76 76h288c41.7 0 76-34.3 76-76V108c0-41.7-34.3-76-76-76zm-36.2 319.4c-12.8 12.8-33.6 12.8-46.4 0L256 281.8l-61.4 69.6c-12.8 12.8-33.6 12.8-46.4 0-12.8-12.8-12.8-33.6 0-46.4l74.6-84.6-74.6-84.6c-12.8-12.8-12.8-33.6 0-46.4 12.8-12.8 33.6-12.8 46.4 0L256 226.2l61.4-69.6c12.8-12.8 33.6-12.8 46.4 0 12.8 12.8 12.8 33.6 0 46.4L325.4 288l74.6 84.6c12.8 12.8 12.8 33.6 0 46.8z"/></svg>
             Kwai Oficial
         </a>
 
         <div class="section-title">Conteúdo Exclusivo</div>
-        <a href="/conteudos" class="link-button btn-adult-main" onclick="return confirmarIdade(event)">🔥 CONTEÚDO +18</a>
+        <a href="/conteudos" class="link-button btn-adult-main" onclick="return confirmarIdade(event)">
+            <svg viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            🔥 CONTEÚDO +18
+        </a>
     </div>
 
     <script>
@@ -162,7 +165,7 @@ HTML_INDEX = """
 </html>
 """
 
-# PÁGINA 2: Conteúdos Exclusivos
+# PÁGINA 2: Conteúdos Exclusivos (Com logo do Telegram nos dois botões de prévia e VIP)
 HTML_CONTEUDOS = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -216,7 +219,7 @@ HTML_CONTEUDOS = """
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             padding: 14px;
             margin-bottom: 12px;
@@ -235,6 +238,12 @@ HTML_CONTEUDOS = """
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
+        .link-button svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            flex-shrink: 0;
+        }
         .btn-privacy { background-color: #ff7300; font-size: 15px; border: 2px solid #ff9133; }
         .btn-preview { background-color: #229ED9; }
         .btn-vip { background-color: #10b981; }
@@ -247,9 +256,23 @@ HTML_CONTEUDOS = """
         <h1>Área Restrita</h1>
         <p class="subtitle">Escolha uma das opções abaixo</p>
 
-        <a href="https://privacy.com.br/profile/MCiasmin" target="_blank" class="link-button btn-privacy">🔥 Privacy</a>
-        <a href="https://t.me/+A_pQQ1vDeY9kY2Yx" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis no Telegram)</a>
-        <a href="/checkout-vip" class="link-button btn-vip">🚀 Canal VIP Telegram (Acesso Direto - R$ 29,90)</a>
+        <!-- Botão Privacy -->
+        <a href="https://privacy.com.br/profile/MCiasmin" target="_blank" class="link-button btn-privacy">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            🔥 Privacy
+        </a>
+
+        <!-- Botão Canal de Prévias (Telegram) -->
+        <a href="https://t.me/+A_pQQ1vDeY9kY2Yx" target="_blank" class="link-button btn-preview">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.65-2.89 7.98-3.46 3.8-1.63 4.59-1.92 5.1-1.93.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.28z"/></svg>
+            Canal de Prévias
+        </a>
+
+        <!-- Botão Canal VIP (Telegram) -->
+        <a href="/checkout-vip" class="link-button btn-vip">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.03-1.99 1.27-5.62 3.72-.53.36-1.01.54-1.44.53-.47-.02-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.65-2.89 7.98-3.46 3.8-1.63 4.59-1.92 5.1-1.93.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.13-.04.28z"/></svg>
+            Canal VIP (R$ 29,90)
+        </a>
 
         <a href="/" class="link-button btn-voltar">⬅ Voltar à Página Inicial</a>
     </div>
