@@ -2,7 +2,6 @@ import os
 import mercadopago
 from flask import Flask, request, jsonify, render_template_string
 
-from bot import processar_update_telegram
 app = Flask(__name__)
 
 # Token de Acesso do Mercado Pago configurado diretamente
@@ -125,7 +124,7 @@ HTML_INDEX = """
         <a href="https://k.kwai.com/u/@mc.iasmin_ofc/z0YdoxCi" target="_blank" class="link-button btn-kwai">⚡ Kwai Oficial</a>
 
         <div class="section-title">Conteúdo Exclusivo</div>
-        <a href="/conteudos" target="_blank" onclick="return confirmarIdade(event)" class="link-button btn-adult-main">🔥 CONTEÚDO +18 (Área VIP)</a>
+        <a href="/conteudos" class="link-button btn-adult-main" onclick="return confirmarIdade(event)">🔥 CONTEÚDO +18</a>
     </div>
 
     <script>
@@ -142,7 +141,7 @@ HTML_INDEX = """
 </html>
 """
 
-# PÁGINA 2: Conteúdos Exclusivos
+# PÁGINA 2: Conteúdos Exclusivos (Com o Privacy em Laranja na primeira opção)
 HTML_CONTEUDOS = """
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -212,7 +211,7 @@ HTML_CONTEUDOS = """
             transform: translateY(-2px);
             box-shadow: 0 6px 15px rgba(0,0,0,0.3);
         }
-        .btn-privacy { background-color: #00aff0; }
+        .btn-privacy { background-color: #ff7300; font-size: 15px; border: 2px solid #ff9133; }
         .btn-preview { background-color: #229ED9; }
         .btn-vip { background-color: #10b981; }
         .btn-voltar { background-color: #334155; color: var(--text-muted); font-size: 13px; padding: 10px; margin-top: 15px; }
@@ -224,7 +223,7 @@ HTML_CONTEUDOS = """
         <h1>Área Restrita</h1>
         <p class="subtitle">Escolha uma das opções abaixo</p>
 
-        <a href="https://privacy.com.br/SEU_LINK" target="_blank" class="link-button btn-privacy">💎 Privacy / Plataforma Principal</a>
+        <a href="https://privacy.com.br/profile/MCiasmin" target="_blank" class="link-button btn-privacy">🔥 Privacy</a>
         <a href="https://t.me/+A_pQQ1vDeY9kY2Yx" target="_blank" class="link-button btn-preview">💬 Canal de Prévias (Grátis no Telegram)</a>
         <a href="/checkout-vip" class="link-button btn-vip">🚀 Canal VIP Telegram (Acesso Direto - R$ 29,90)</a>
 
@@ -383,7 +382,6 @@ HTML_CHECKOUT = """
 
             <div id="resultado-pix">
                 <p style="color: var(--success); font-weight: bold; font-size: 12px; margin-bottom: 4px;">Escaneie o QR Code ou Copie o Código:</p>
-                <!-- Imagem do QR Code gerada automaticamente pelo base64 -->
                 <img id="qrcode-tag" class="qrcode-img" src="" alt="QR Code Pix">
                 
                 <textarea id="copia-cola" readonly></textarea>
@@ -423,7 +421,6 @@ HTML_CHECKOUT = """
                     document.getElementById('form-pagamento').style.display = 'none';
                     document.getElementById('copia-cola').value = data.qr_code;
                     
-                    // Define a imagem do QR Code em Base64 retornada pelo Mercado Pago
                     if(data.qr_code_base64) {
                         document.getElementById('qrcode-tag').src = "data:image/jpeg;base64," + data.qr_code_base64;
                     }
@@ -466,7 +463,7 @@ def conteudos():
 def checkout_vip():
     return render_template_string(HTML_CHECKOUT)
 
-# Rota de criação do Pix via Mercado Pago (Com captura do QR Code Base64 e Copia e Cola)
+# Rota de criação do Pix via Mercado Pago
 @app.route('/criar_pagamento', methods=['POST'])
 def criar_pagamento():
     try:
@@ -485,14 +482,12 @@ def criar_pagamento():
         result = sdk.payment().create(payment_data)
         payment_response = result.get("response", {})
         
-        # Captura do Copia e Cola
         qr_code = ""
         if "point_of_interaction" in payment_response:
             qr_code = payment_response["point_of_interaction"].get("transaction_data", {}).get("qr_code", "")
         if not qr_code and "transaction_data" in payment_response:
             qr_code = payment_response["transaction_data"].get("qr_code", "")
 
-        # Captura da Imagem do QR Code em Base64
         qr_code_base64 = ""
         if "point_of_interaction" in payment_response:
             qr_code_base64 = payment_response["point_of_interaction"].get("transaction_data", {}).get("qr_code_base64", "")
@@ -528,8 +523,6 @@ def webhook_pagamento():
         return jsonify({"status": "recebido"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "detalhes": str(e)}), 500
-@app.route("/webhook/bot/7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc", methods=["POST"])
-def webhook_telegram():
-    processar_update_telegram(request.get_json())
-    return jsonify({"status": "ok"}), 200
-    
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=10000)
