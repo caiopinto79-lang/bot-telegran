@@ -528,9 +528,13 @@ def webhook_pagamento():
         return jsonify({"status": "recebido"}), 200
     except Exception as e:
         return jsonify({"status": "erro", "detalhes": str(e)}), 500
-            @app.route(
-        "/webhook/bot/7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc",
-        methods=["POST"],
+      @app.route(
+    "/webhook/bot/7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc",
+    methods=["POST"],
+):
+  data = request.get_json()
+  processar_update_telegram(data)
+  return jsonify({"status": "ok"}), 200
     ):
           data = request.get_json()
           processar_update_telegram(data)
