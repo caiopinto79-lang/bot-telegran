@@ -531,3 +531,12 @@ def webhook_pagamento():
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+from bot import processar_update_telegram
+
+@app.route(
+    "/webhook/bot/7139961367:AAH604l5jQ830YeeMFCcflqBgugln3Zadsc",
+    methods=["POST"],
+):
+  data = request.get_json()
+  processar_update_telegram(data)
+  return jsonify({"status": "ok"}), 200
